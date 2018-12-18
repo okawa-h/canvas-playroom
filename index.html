@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Cache-Control" content="no-cache">
+<title>helloworld</title>
+<link href="./common/files/css/style.css" rel="stylesheet">
+</head>
+<body>
+<div id="all"></div>
+<script>
+
+	const data = [
+		'culture-microorganism',
+		'grid-line-circle',
+		'grid-particle-line',
+		'neon-text',
+		'rotate-shape',
+		'shadow-circle',
+		'text-particle',
+		'wave-pattern'
+	];
+
+	let html = '<ul id="page-navi">';
+	for (const name of data) {
+		html += '<li><a href="./' + name + '/"><figure>';
+		html += '<img src="./' + name + '/thumnail.png">';
+		html += '<figcaption>' + name + '</figcaption>';
+		html += '</figure></a></li>';
+	}
+	html += '</ul>';
+	document.getElementById('all').innerHTML = html;
+
+</script>
+
+</body>
+</html>

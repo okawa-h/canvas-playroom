@@ -1,0 +1,131 @@
+@charset "UTF-8";
+@import url('base.css');
+
+body {
+    -webkit-font-smoothing: antialiased;
+}
+
+canvas {
+    display: block;
+}
+
+#page-navi {
+    margin-top: -30px;
+    margin-left: -30px;
+    padding: 30px;
+}
+
+#page-navi:after {
+    display: none;
+}
+
+    #page-navi li {
+        float: left;
+        max-width: 180px;
+        margin-top: 30px;
+        margin-left: 30px;
+        text-align: center;
+    }
+
+        #page-navi li a {
+            transition: opacity .15s ease-in-out;
+        }
+
+        #page-navi li a:hover {
+            opacity: .8;
+        }
+
+        #page-navi li figure {
+            display: inline-block;
+        }
+
+            #page-navi li figure img {
+                width: 100%;
+            }
+
+            #page-navi li figure figcaption {
+                margin-top: 10px;
+                font-size: 12px;
+            }
+
+#setting-ui {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0,0,0,0.6);
+    z-index: 1;
+}
+
+    #setting-ui.open ul {
+        display: none;
+    }
+
+    #setting-ui ul {
+        padding: 20px;
+    }
+
+        #setting-ui ul li {
+            display: flex;
+            margin-bottom: .5em;
+            font-size: 12px;
+        }
+
+        #setting-ui ul li:last-child {
+            margin-bottom: 0;
+        }
+
+            #setting-ui ul li label {
+                flex-basis: 50%;
+                margin-right: 1em;
+                color: #fff;
+            }
+
+            #setting-ui ul li input {
+                flex-basis: 50%;
+                width: 100%;
+                margin: 0;
+                padding: .2em .5em;
+                border: 2px solid #eee;
+                border-radius: 3px;
+                background: #fff;
+                box-sizing: border-box;
+                font-size: 10px;
+                line-height: 1;
+                transition: border-color .15s ease-in-out;
+                outline: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            #setting-ui ul li input:focus {
+                border-color: #2b7ffc;
+            }
+
+            #setting-ui ul li input[type="number"] {
+                text-align: right;
+            }
+
+    #setting-ui .close {
+        padding: 1em 2em;
+        background-color: rgba(0,0,0,0.6);
+        color: #fff;
+        font-size: 10px;
+        line-height: 1;
+        text-align: center;
+        cursor: pointer;
+        transition: opacity .15s ease-in-out;
+    }
+
+    #setting-ui .close:hover {
+        opacity: .8;
+    }
+
+    #setting-ui .close:before {
+        display: inline;
+        content: 'close';
+    }
+
+    #setting-ui.open .close:before {
+        content: 'open';
+    }
