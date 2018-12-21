@@ -9,6 +9,10 @@ canvas {
     display: block;
 }
 
+.hide-cursor {
+    cursor: none;
+}
+
 #page-navi {
     margin-top: -30px;
     margin-left: -30px;

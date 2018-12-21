@@ -5,14 +5,15 @@ import { Setting } from '../../../common/files/js/setting.js';
 	'use strict';
 
 	let _canvas,_context;
-	let _setting,_mousePoint;
+	let _setting,_mousePoint,_afterimages;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
 	function initialize() {
 
 		_setting = new Setting({
-			ratio:{ value:1,step:.1 }
+			ratio   :{ value:1,step:.1 },
+			min_size:{ value:10 }
 		});
 		_mousePoint = null;
 
@@ -45,15 +46,19 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	function onMousemove(event) {
 
-		if (_mousePoint != null) {
+		let diffX = Math.abs(event.clientX - _mousePoint.x);
+		let diffY = Math.abs(event.clientY - _mousePoint.y);
+		let diff  = Math.round((diffX + diffY) * _setting.get('ratio'));
+		let minSize = _setting.get('min_size');
+		_mousePoint.diff = diff < minSize ? minSize : diff;
 
-			let diffX = Math.abs(event.clientX - _mousePoint.x);
-			let diffY = Math.abs(event.clientY - _mousePoint.y);
-			_mousePoint.diff = Math.round((diffX + diffY) * _setting.get('ratio'));
+		_afterimages.push({
+			x   :_mousePoint.x,
+			y   :_mousePoint.y,
+			size:_mousePoint.diff,
+			velocity:1
+		});
 
-		}
-
-		if (_mousePoint == null) _mousePoint = {};
 		_mousePoint.x = event.clientX;
 		_mousePoint.y = event.clientY;
 
@@ -61,8 +66,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	function setup() {
 
-		let width  = _canvas.width;
-		let height = _canvas.height;
+		_afterimages = [];
+		_mousePoint  = {};
 
 	}
 
@@ -73,18 +78,31 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		clear(width,height);
 
+		_context.globalCompositeOperation = 'source-over';
 		_context.rect(0,0,width,height);
-		_context.fillStyle = '#000';
+		_context.fillStyle = '#0f124f';
 		_context.fill();
 
-		if (_mousePoint != null) {
+		_context.globalCompositeOperation = 'screen';
+		for (let i = 0; i < _afterimages.length; i++) {
 
-			_context.beginPath();
-			_context.shadowBlur  = 100;
-			_context.shadowColor = '#fff';
-			_context.arc(_mousePoint.x, _mousePoint.y, _mousePoint.diff, 0, Math.PI*2, false);
-			_context.fillStyle = '#fff';
-			_context.fill();
+			let afterObj = _afterimages[i];
+			afterObj.velocity += .1;
+			afterObj.size -= afterObj.velocity;
+
+			if (0 < afterObj.size) {
+
+				_context.beginPath();
+				_context.shadowBlur  = afterObj.size;
+				_context.shadowColor = '#9816f4';
+
+				let x = getRangeNumber(afterObj.x - 5,afterObj.x + 5);
+				let y = getRangeNumber(afterObj.y - 5,afterObj.y + 5);
+				_context.arc(x, y, afterObj.size, 0, Math.PI*2, false);
+				_context.fillStyle = '#9816f4';
+				_context.fill();
+
+			}
 
 		}
 
