@@ -60,28 +60,25 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		clear(width,height);
 
-		_context.globalCompositeOperation = 'source-over';
-		_context.rect(0,0,width,height);
-		_context.fillStyle = '#192021';
-		_context.fill();
+		var gradient = _context.createLinearGradient(centerX, 0, centerX, height);
+		gradient.addColorStop(0, '#EFECF5');
+		gradient.addColorStop(.5, '#52F6F8');
+		gradient.addColorStop(1, '#FB97F8');
+		_context.fillStyle = gradient;
+		_context.fillRect(0, 0, width, height);
 
-		_context.globalCompositeOperation = 'screen';
 		_context.beginPath();
-		_context.shadowBlur  = 20;
-		_context.shadowColor = '#fff';
 		_context.arc(centerX, centerY, size, 0, Math.PI*2, false);
-		_context.fillStyle = '#fff';
+		_context.fillStyle = '#cd342f';
 		_context.fill();
 
-		_direction.x += 1 * _direction.d;
-		if (200 <= _direction.x) _direction.d  = -1;
-		if (_direction.x <= -20) _direction.d = 1;
-
 		_context.beginPath();
-		_context.shadowBlur  = 20 + _direction.x;
-		_context.shadowColor = '#f53a8a';
-		_context.arc(centerX - 1, centerY + 1, size, 0, Math.PI*2, false);
-		_context.fillStyle = '#f53a8a';
+		_context.moveTo(0,height);
+		_context.lineTo(0,height*.8);
+		_context.lineTo(centerX,centerY);
+		_context.lineTo(width,height*.8);
+		_context.lineTo(width,height);
+		_context.fillStyle = '#000';
 		_context.fill();
 
 		window.requestAnimationFrame(render);

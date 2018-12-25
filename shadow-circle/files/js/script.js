@@ -89,11 +89,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 				this.x = centerX + goalPoint.x;
 				this.y = centerY + goalPoint.y;
 
-				if (this.goalAngle <= this.angle) {
-
-					this.reset();
-
-				}
+				if (this.goalAngle <= this.angle) this.reset();
 
 			}
 
