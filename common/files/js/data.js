@@ -7,7 +7,10 @@ const DATA = {
             "name":"bloom-image"
         },
         {
-            "name":"spot-circle"
+            "name":"vaporwave-image"
+        },
+        {
+            "name":"spot"
         },
         {
             "name":"neon-text"

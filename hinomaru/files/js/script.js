@@ -58,19 +58,19 @@ import { Setting } from '../../../common/files/js/setting.js';
 		const centerY = height * .5;
 		const size    = _setting.get('size');
 
-		clear(width,height);
 		_context.globalCompositeOperation = 'source-over';
+		clear(width,height);
 
 		var gradient = _context.createLinearGradient(centerX, 0, centerX, height);
-		gradient.addColorStop(0, '#EFECF5');
-		gradient.addColorStop(.5, '#52F6F8');
-		gradient.addColorStop(1, '#FB97F8');
+		gradient.addColorStop(0,'#EFECF5');
+		gradient.addColorStop(.5,'#52F6F8');
+		gradient.addColorStop(1,'#FB97F8');
 		_context.fillStyle = gradient;
 		_context.fillRect(0, 0, width, height);
 
 		_context.beginPath();
 		_context.arc(centerX, centerY, size, 0, Math.PI*2, false);
-		_context.fillStyle = '#cd342f';
+		_context.fillStyle = '#fe7d7c';
 		_context.fill();
 
 		_context.beginPath();
@@ -79,7 +79,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_context.lineTo(centerX,centerY);
 		_context.lineTo(width,height*.8);
 		_context.lineTo(width,height);
-		_context.fillStyle = '#000';
+		_context.fillStyle = '#46474a';
 		_context.fill();
 
 		window.requestAnimationFrame(render);

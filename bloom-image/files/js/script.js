@@ -65,7 +65,6 @@ import { Setting } from '../../../common/files/js/setting.js';
 		filter.height = imageH / scale;
 		filter.getContext('2d').drawImage(_image, 0, 0, filter.width, filter.height);
 
-
 		_context.globalCompositeOperation = 'source-over';
 		clear(width,height);
 		_context.drawImage(_image, x, y);

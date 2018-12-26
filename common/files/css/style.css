@@ -14,6 +14,8 @@ canvas {
 }
 
 #page-navi {
+    display: flex;
+    flex-wrap: wrap;
     margin-top: -30px;
     margin-left: -30px;
     padding: 30px;
@@ -24,7 +26,6 @@ canvas {
 }
 
     #page-navi li {
-        float: left;
         max-width: 180px;
         margin-top: 30px;
         margin-left: 30px;
