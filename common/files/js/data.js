@@ -16,6 +16,9 @@ const DATA = {
             "name":"neon-text"
         },
         {
+            "name":"dynamic-text"
+        },
+        {
             "name":"text-particle"
         },
         {
