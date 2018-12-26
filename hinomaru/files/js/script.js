@@ -59,6 +59,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 		const size    = _setting.get('size');
 
 		clear(width,height);
+		_context.globalCompositeOperation = 'source-over';
 
 		var gradient = _context.createLinearGradient(centerX, 0, centerX, height);
 		gradient.addColorStop(0, '#EFECF5');

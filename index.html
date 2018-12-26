@@ -10,34 +10,14 @@
 </head>
 <body>
 <div id="all"></div>
+<script src="data.js"></script>
 <script>
 
-	const data = [
-
-		'hinomaru',
-		'bloom-image',
-		'spot-circle',
-
-		'neon-text',
-		'text-particle',
-		'wave-pattern',
-		'rotate-shape',
-
-		'culture-microorganism',
-		'grid-line-circle',
-		'flashlight',
-
-		'pursuit-bubbles',
-		'shadow-circle',
-		'free-particle',
-		'grid-particle-line',
-	];
-
 	let html = '<ul id="page-navi">';
-	for (const name of data) {
-		html += '<li><a href="./' + name + '/"><figure>';
-		html += '<img src="./' + name + '/thumnail.png">';
-		html += '<figcaption>' + name + '</figcaption>';
+	for (const file of DATA.files) {
+		html += '<li><a href="./' + file.name + '/"><figure>';
+		html += '<img src="./' + file.name + '/thumnail.png">';
+		html += '<figcaption>' + file.name + '</figcaption>';
 		html += '</figure></a></li>';
 	}
 	html += '</ul>';
