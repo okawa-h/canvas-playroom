@@ -19,37 +19,27 @@ import { Setting } from '../../../common/files/js/setting.js';
 		reset() {
 
 			this.fonsize  = 0;
+			this.gfonsize = getRangeNumber(_setting.get('max_font_size'),10);
 			_context.font = this.fonsize + 'px serif';
 
-			this.life  = _setting.get('life');
 			this.angle = getRangeNumber(180,0);
-			this.info  = {
-				width :_context.measureText(this.charactor).width,
-				height:getFontOffsetHeight(this.charactor,_context.font)
-			};
+			this.info  = { width :0,height:0 };
 
-			let fontHW = this.info.width * .5;
-			let fontHH = this.info.height * .5;
-			this.x = getRangeNumber(fontHW,_canvas.width - fontHW) - fontHW;
-			this.y = getRangeNumber(fontHH,_canvas.height - fontHH) - fontHH;
+			this.x = getRangeNumber(0,_canvas.width);
+			this.y = getRangeNumber(0,_canvas.height);
 
-			this.velocity = getRangeNumber(100,.1);
+			this.velocity = { size:.1,angle:getRangeNumber(1,.1) };
 
 		}
 
 		update(width,height) {
 
-			this.life--;
-			if (this.life <= 0) this.reset();
+			this.velocity.size += .01;
+			this.angle += this.velocity.angle;
 
-			this.velocity *= .5;
-			this.fonsize += this.velocity;
-
-			// this.velocity += .01;
-
-			// this.x += getRangeNumber(1,-1);
-			// this.y += getRangeNumber(1,-1);
-			this.angle += .5;
+			let diffF    = this.gfonsize - this.fonsize;
+			this.fonsize = this.fonsize + diffF * this.velocity.size;
+			if (diffF <= 0 || this.gfonsize <= this.fonsize) this.reset();
 
 			_context.font = this.fonsize + 'px serif';
 			this.info = {
@@ -73,8 +63,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 			_context.rotate(this.angle * Math.PI / 180);
 			_context.translate(-this.x - fontHW,-this.y - fontHH);
 
-			_context.shadowColor   = '#333';
-			_context.shadowBlur    = 5;
+			_context.shadowColor = '#333';
+			_context.shadowBlur  = 5;
 
 			_context.fillStyle = '#333';
 			_context.fillText(this.charactor,this.x,this.y);
@@ -90,8 +80,9 @@ import { Setting } from '../../../common/files/js/setting.js';
 	function init() {
 
 		_setting = new Setting({
-			text :{ value:'あいうえお' },
-			life :{ value:50,'data-reload':false },
+			text  :{ value:'ぽぽぽぽ' },
+			length:{ value:3 },
+			max_font_size:{ value:100,'data-reload':false },
 			scale:{ value:20,'data-reload':false },
 			alpha:{ value:.3,step:.1,max:1,min:0,'data-reload':false }
 		});
@@ -127,9 +118,15 @@ import { Setting } from '../../../common/files/js/setting.js';
 	function setup() {
 
 		let charactors = _setting.get('text').split('');
-		charactors     = charactors.concat(charactors).concat(charactors);
+		let charLength = _setting.get('length') - 1;
 		_charactors    = [];
 		_context.textBaseline = 'top';
+
+		for (let i = 0; i < charLength; i++) {
+
+			charactors = charactors.concat(charactors);
+
+		}
 
 		for (let i = 0; i < charactors.length; i++) {
 

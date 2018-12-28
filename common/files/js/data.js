@@ -10,6 +10,9 @@ const DATA = {
             "name":"vaporwave-image"
         },
         {
+            "name":"delaunay-image"
+        },
+        {
             "name":"spot"
         },
         {
