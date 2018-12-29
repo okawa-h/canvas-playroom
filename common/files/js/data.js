@@ -13,6 +13,9 @@ const DATA = {
             "name":"delaunay-image"
         },
         {
+            "name":"shape-image"
+        },
+        {
             "name":"spot"
         },
         {
