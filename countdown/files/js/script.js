@@ -88,7 +88,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 				let diffX = point.goal.x - point.x;
 				let diffY = point.goal.y - point.y;
 
-				point.velocity += .002;
+				point.velocity += .01;
 				point.x = point.x + diffX * point.velocity;
 				point.y = point.y + diffY * point.velocity;
 
@@ -136,7 +136,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 				let startP   = this.getCircleOnPoint(this.radius + getRangeNumber(180,30),distanse * i);
 				let circleP  = new Point(centerP.x + startP.x,centerP.y + startP.y);
 				circleP.goal = new Point(centerP.x + point.x,centerP.y + point.y);
-				circleP.velocity = getRangeNumber(.01,.0001);
+				circleP.velocity = getRangeNumber(.01,.001);
 
 				this.points.push(circleP);
 
