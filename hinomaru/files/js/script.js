@@ -5,14 +5,15 @@ import { Setting } from '../../../common/files/js/setting.js';
 	'use strict';
 
 	let _canvas,_context;
-	let _setting,_direction;
+	let _setting,_image,_velocity,_radius;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
 	function initialize() {
 
 		_setting = new Setting({
-			size:{ value:100,'data-reload':false }
+			min_radius:{ value:50,'data-reload':false },
+			max_radius:{ value:70,'data-reload':false }
 		});
 
 		_canvas  = document.getElementById('canvas');
@@ -20,11 +21,17 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		_setting.setCallback(setup);
 
-		window.addEventListener('resize',onResize,false);
+		_image = new Image();
+		_image.onload = function() {
 
-		setCanvasSize();
-		setup();
-		window.requestAnimationFrame(render);
+			window.addEventListener('resize',onResize,false);
+
+			setCanvasSize();
+			setup();
+			window.requestAnimationFrame(render);
+
+		}
+		_image.src = './image.jpg';
 
 	}
 
@@ -43,10 +50,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	function setup() {
 
-		_direction = {
-			x:0,
-			d:1
-		}
+		_velocity = 1;
+		_radius   = _setting.get('min_radius');
 
 	}
 
@@ -56,30 +61,44 @@ import { Setting } from '../../../common/files/js/setting.js';
 		const height  = _canvas.height;
 		const centerX = width * .5;
 		const centerY = height * .5;
-		const size    = _setting.get('size');
+		let minRadius = _setting.get('min_radius');
+		let maxRadius = _setting.get('max_radius');
 
-		_context.globalCompositeOperation = 'source-over';
+		if (_velocity <= -1) {
+			_velocity -= 3;
+		} else {
+			_velocity *= 1.3;
+		}
+		
+		_radius += _velocity;
+		if (maxRadius <= _radius) _velocity = -1;
+		if (_radius <= minRadius) _velocity = 1;
+
 		clear(width,height);
 
-		var gradient = _context.createLinearGradient(centerX, 0, centerX, height);
-		gradient.addColorStop(0,'#EFECF5');
-		gradient.addColorStop(.5,'#52F6F8');
-		gradient.addColorStop(1,'#FB97F8');
-		_context.fillStyle = gradient;
+		var bgGradient = _context.createLinearGradient(centerX, 0, centerX, height);
+		bgGradient.addColorStop(0,'#efecf5');
+		bgGradient.addColorStop(.5,'#52f6f8');
+		bgGradient.addColorStop(1,'#fb97f8');
+		_context.fillStyle = bgGradient;
 		_context.fillRect(0, 0, width, height);
 
-		_context.beginPath();
-		_context.arc(centerX, centerY, size, 0, Math.PI*2, false);
-		_context.fillStyle = '#fe7d7c';
-		_context.fill();
+		let x = (width - _image.width) * .5;
+		let y = (height - _image.height) * .5;
+		_context.drawImage(_image,x,y,_image.width,_image.height);
 
+		_context.fillStyle   = '#df8b80';
+		_context.globalAlpha = .2;
+		_context.fillRect(x,y,_image.width,_image.height);
+
+		_context.globalAlpha = 1;
 		_context.beginPath();
-		_context.moveTo(0,height);
-		_context.lineTo(0,height*.8);
-		_context.lineTo(centerX,centerY);
-		_context.lineTo(width,height*.8);
-		_context.lineTo(width,height);
-		_context.fillStyle = '#46474a';
+		var arcGradient = _context.createLinearGradient(centerX,centerY - _radius,centerX,centerY + _radius);
+		arcGradient.addColorStop(0,'#df8b80');
+		arcGradient.addColorStop(1,'#d97789');
+		_context.fillStyle = arcGradient;
+		_context.arc(centerX, centerY, _radius, 0, Math.PI*2, false);
+		_context.fillStyle = arcGradient;
 		_context.fill();
 
 		window.requestAnimationFrame(render);
