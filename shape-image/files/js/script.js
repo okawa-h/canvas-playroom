@@ -229,7 +229,11 @@ import { Setting } from '../../../common/files/js/setting.js';
 	function initialize() {
 
 		_setting = new Setting({
-			length:{ value:1500,min:10 }
+			length:{ value:1500,min:1 },
+			max_width :{ value:80,min:1 },
+			min_width :{ value:1,min:1 },
+			max_height:{ value:80,min:1 },
+			min_height:{ value:1,min:1 }
 		});
 
 		_canvas  = document.getElementById('canvas');
@@ -269,11 +273,16 @@ import { Setting } from '../../../common/files/js/setting.js';
 		let width  = _canvas.width;
 		let height = _canvas.height;
 
+		let maxW = _setting.get('max_width');
+		let minW = _setting.get('min_width');
+		let maxH = _setting.get('max_height');
+		let minH = _setting.get('min_height');
+
 		_shapes = [];
 		for (let i = 0; i < length; i++) {
 
-			let shapeW  = getRangeNumber(1,80);
-			let shapeH = getRangeNumber(1,80);
+			let shapeW = getRangeNumber(minW,maxW);
+			let shapeH = getRangeNumber(minH,maxH);
 			let shape  = new Shape(Math.random() * width,Math.random() * height,shapeW,shapeH);
 			_shapes.push(shape);
 
