@@ -89,7 +89,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_setting = new Setting({
 			connect_distance:{ value:100,'data-reload':false },
 			point_length:{ value:100 },
-			point_radius:{ value:2,step:.5,min:0,'data-reload':false }
+			point_radius:{ value:2,step:.5,min:0,'data-reload':false },
+			filter_scale:{ value:5,'data-reload':false }
 		});
 
 		_dpr     = window.devicePixelRatio || 1;
@@ -139,6 +140,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 	function render(timestamp) {
 
 		const connectDistance = _setting.get('connect_distance');
+		const scale  = _setting.get('filter_scale');
 		const radius = _setting.get('point_radius');
 		const width  = _canvas.width;
 		const height = _canvas.height;
@@ -147,6 +149,9 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		_context.fillStyle = '#000';
 		_context.fillRect(0,0,width,height);
+
+		_context.globalAlpha = 1;
+		_context.globalCompositeOperation = 'source-over';
 
 		for (let point of _points) {
 
@@ -178,6 +183,15 @@ import { Setting } from '../../../common/files/js/setting.js';
 			point.draw(_context,radius);
 
 		}
+
+
+		let filter    = document.createElement('canvas');
+		filter.width  = width / scale;
+		filter.height = height / scale;
+		filter.getContext('2d').drawImage(_canvas, 0, 0, filter.width, filter.height);
+		_context.globalAlpha = .9;
+		_context.globalCompositeOperation = 'lighter';
+		_context.drawImage(filter, 0, 0, width, height);
 
 		_context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(render);
