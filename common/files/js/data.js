@@ -58,6 +58,9 @@ const DATA = {
             "name":"grid-particle-line"
         },
         {
+            "name":"connect-particle"
+        },
+        {
             "name":"countdown"
         }
     ]
