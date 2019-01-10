@@ -4,6 +4,9 @@ const DATA = {
             "name":"hinomaru"
         },
         {
+            "name":"mask-image"
+        },
+        {
             "name":"bloom-image"
         },
         {
