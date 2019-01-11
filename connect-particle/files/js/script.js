@@ -128,7 +128,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 		const height = _canvas.height;
 
 		for (let i = 0; i < length; i++) {
-			
+
 			const x = getRangeNumber(0,width);
 			const y = getRangeNumber(0,height);
 			_points.push(new Point(x,y));

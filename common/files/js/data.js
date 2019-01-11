@@ -25,6 +25,9 @@ const DATA = {
             "name":"spot"
         },
         {
+            "name":"circle"
+        },
+        {
             "name":"neon-text"
         },
         {
