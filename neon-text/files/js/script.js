@@ -147,7 +147,6 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_context.fillStyle = '#fff';
 		_context.fillText(text,centerX - _textInfo.width * .5, centerY - _textInfo.height * .5);
 
-		_context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(run);
 
 	}
