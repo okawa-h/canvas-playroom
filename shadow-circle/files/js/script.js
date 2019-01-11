@@ -175,7 +175,6 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_frameWhite.draw();
 		_frameBlack.draw();
 
-		_context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(render);
 
 	}
