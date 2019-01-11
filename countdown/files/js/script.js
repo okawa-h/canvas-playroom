@@ -236,7 +236,6 @@ import { Setting } from '../../../common/files/js/setting.js';
 		// _context.globalCompositeOperation = 'screen';
 		_frame.update(count,centerP).draw(_context);
 
-		_context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(render);
 
 	}
