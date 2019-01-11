@@ -323,7 +323,6 @@ import { Setting } from '../../../common/files/js/setting.js';
 				break;
 		}
 
-		_context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(render);
 
 	}
