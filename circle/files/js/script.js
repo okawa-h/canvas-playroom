@@ -172,7 +172,6 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		_circle.update().draw(_context);
 
-		_context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(render);
 
 	}
