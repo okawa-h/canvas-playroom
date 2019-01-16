@@ -39,6 +39,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 			this.length   = radius * 2;
 			this.distanse = 360 / this.length;
 			this.center   = new Point(centerX,centerY);
+			this.life     = getRangeNumber(100,1000);
 
 			for (let i = 0; i < this.length; i++) {
 
@@ -47,7 +48,9 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 				point.angle    = this.distanse * i;
 				point.degree   = 0;
-				point.velocity = getRangeNumber(1,10);
+				point.velocity = getRangeNumber(1,3);
+				point.ratio    = getRangeNumber(0,10);
+				point.life     = getRangeNumber(10,100);
 
 				this.points.push(point);
 
@@ -57,18 +60,34 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		update() {
 
+			this.life--;
+			const isDie = this.life <= 0;
+
 			for (let i = 0; i < this.points.length; i++) {
 
 				let point = this.points[i];
+				let ratio = point.ratio;
 				point.degree += point.velocity;
-				let radius  = this.radius + Math.sin(point.degree * Math.PI / 180) * 1.5;
-				let onPoint = this.getCircleOnPoint(radius,point.angle);
+				point.life--;
+
+				if (isDie) ratio *= getRangeNumber(1,50);
+
+				let radius    = this.radius + Math.sin(point.degree * Math.PI / 180) * ratio;
+				let onPoint   = this.getCircleOnPoint(radius,point.angle);
 				let pointPosi = new Point(this.center.x + onPoint.x,this.center.y + onPoint.y);
+
+				if (point.life <= 0) {
+					point.velocity = getRangeNumber(1,3);
+					point.ratio    = getRangeNumber(0,10);
+					point.life     = getRangeNumber(10,100);
+				}
 
 				point.x = pointPosi.x;
 				point.y = pointPosi.y;
 
 			}
+
+			if (this.life <= -100) this.life = getRangeNumber(100,1000);
 
 			return this;
 
@@ -90,7 +109,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 				context.beginPath();
 				context.strokeStyle = '#fff';
-				context.lineWidth   = 1;
+				context.lineWidth   = .5;
 				context.moveTo(point.x,point.y);
 				context.lineTo(nextP.x,nextP.y);
 				context.stroke();
@@ -167,7 +186,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_context.clearRect(0,0,width,height);
 
 		_context.rect(0,0,width,height);
-		_context.fillStyle = '#000';
+		_context.fillStyle = '#010622';
 		_context.fill();
 
 		_circle.update().draw(_context);
