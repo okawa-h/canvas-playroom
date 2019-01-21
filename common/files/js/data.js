@@ -22,6 +22,9 @@ const DATA = {
             "name":"shape-image"
         },
         {
+            "name":"mousemove-image"
+        },
+        {
             "name":"spot"
         },
         {
