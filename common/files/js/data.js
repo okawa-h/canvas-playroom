@@ -1,79 +1,104 @@
 const DATA = {
     "files":[
         {
-            "name":"hinomaru"
+            "name":"hinomaru",
+            "directory":"hinomaru"
         },
         {
-            "name":"mask-image"
+            "name":"mask image",
+            "directory":"mask-image"
         },
         {
-            "name":"bloom-image"
+            "name":"bloom image",
+            "directory":"bloom-image"
         },
         {
-            "name":"vaporwave-image"
+            "name":"vaporwave image",
+            "directory":"vaporwave-image"
         },
         {
-            "name":"noise-image"
+            "name":"noise image",
+            "directory":"noise-image"
         },
         {
-            "name":"delaunay-image"
+            "name":"delaunay image",
+            "directory":"delaunay-image"
         },
         {
-            "name":"shape-image"
+            "name":"shape image",
+            "directory":"shape-image"
         },
         {
-            "name":"mousemove-image"
+            "name":"misosoup",
+            "directory":"misosoup"
         },
         {
-            "name":"spot"
+            "name":"spot",
+            "directory":"spot"
         },
         {
-            "name":"circle"
+            "name":"circle",
+            "directory":"circle"
         },
         {
-            "name":"neon-text"
+            "name":"neon text",
+            "directory":"neon-text"
         },
         {
-            "name":"dynamic-text"
+            "name":"dynamic text",
+            "directory":"dynamic-text"
         },
         {
-            "name":"text-particle"
+            "name":"particle text",
+            "directory":"text-particle"
         },
         {
-            "name":"wave-pattern"
+            "name":"wave pattern",
+            "directory":"wave-pattern"
         },
         {
-            "name":"rotate-shape"
+            "name":"rotate shape",
+            "directory":"rotate-shape"
         },
         {
-            "name":"culture-microorganism"
+            "name":"culture microorganism",
+            "directory":"culture-microorganism"
         },
         {
-            "name":"grid-line-circle"
+            "name":"grid line circle",
+            "directory":"grid-line-circle"
         },
         {
-            "name":"rough-squares"
+            "name":"rough squares",
+            "directory":"rough-squares"
         },
         {
-            "name":"flashlight"
+            "name":"flashlight",
+            "directory":"flashlight"
         },
         {
-            "name":"pursuit-bubbles"
+            "name":"pursuit bubbles",
+            "directory":"pursuit-bubbles"
         },
         {
-            "name":"shadow-circle"
+            "name":"shadow circle",
+            "directory":"shadow-circle"
         },
         {
-            "name":"free-particle"
+            "name":"free particle",
+            "directory":"free-particle"
         },
         {
-            "name":"grid-particle-line"
+            "name":"grid particle line",
+            "directory":"grid-particle-line"
         },
         {
-            "name":"connect-particle"
+            "name":"connect particle",
+            "directory":"connect-particle"
         },
         {
-            "name":"countdown"
+            "name":"countdown",
+            "directory":"countdown"
         }
     ]
 };

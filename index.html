@@ -15,8 +15,8 @@
 
 	let html = '<ul id="page-navi">';
 	for (const file of DATA.files) {
-		html += '<li><a href="./' + file.name + '/"><figure>';
-		html += '<img src="./' + file.name + '/thumnail.png">';
+		html += '<li><a href="./' + file.directory + '/"><figure>';
+		html += '<img src="./' + file.directory + '/thumnail.png">';
 		html += '<figcaption>' + file.name + '</figcaption>';
 		html += '</figure></a></li>';
 	}

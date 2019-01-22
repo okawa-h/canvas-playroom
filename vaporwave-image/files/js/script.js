@@ -1,13 +1,63 @@
 import { Setting } from '../../../common/files/js/setting.js';
+import { Filter } from '../../../common/files/js/filter.js';
 
 (function(window) {
 
 	'use strict';
 
 	let _dpr,_canvas,_context;
-	let _setting,_image,_filter;
+	let _setting,_image,_filter,_effect;
 
 	document.addEventListener('DOMContentLoaded',initialize);
+
+	class Effect {
+
+		constructor() {
+
+			this.draw   = null;
+			this.filter = new Filter();
+
+			this.setProcessing();
+			this.setLife();
+
+		}
+
+		setLife() {
+
+			this.life  = getRangeNumber(0,100);
+			this.dying = getRangeNumber(1,10);
+
+		}
+
+		setProcessing() {
+
+			const processing = [this.filter.inversion,this.filter.glitch,this.filter.extendColor];
+			this.draw = processing[Math.floor(Math.random() * processing.length)];
+
+		}
+
+		counter(context,width,height) {
+
+			this.life--;
+
+			this.filter.glitchSlip(context,width,height,20);
+
+			if (this.life <= 0) {
+
+				this.draw(context,width,height);
+
+			}
+
+			if (this.life <= -this.dying) {
+
+				this.setProcessing();
+				this.setLife();
+
+			}
+
+		}
+
+	}
 
 	function initialize() {
 
@@ -21,6 +71,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_context = _canvas.getContext('2d');
 
 		_setting.setCallback(setup);
+
+		_effect = new Effect();
 
 		_image = new Image();
 		_image.onload = function() {
@@ -134,7 +186,9 @@ import { Setting } from '../../../common/files/js/setting.js';
 		_filter.context.putImageData(_filter.blue,0,0);
 		_context.drawImage(_filter.canvas,Math.random() * -10,getRangeNumber(1,-1));
 
-		_context.scale(_dpr,_dpr);
+		_effect.counter(_context,width,height);
+
+		// _context.scale(_dpr,_dpr);
 		window.requestAnimationFrame(render);
 
 	}
