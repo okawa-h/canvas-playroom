@@ -5,72 +5,76 @@ import { Setting } from '../../../common/files/js/setting.js';
 	'use strict';
 
 	let _dpr,_canvas,_context;
-	let _setting,_shadows,_textInfo;
+	let _setting,_text;
 
-	document.addEventListener('DOMContentLoaded',init,false);
+	document.addEventListener('DOMContentLoaded',initialize,false);
 
-	function init() {
+	class Text {
 
-		_setting = new Setting({
-			font_size:{ value:62,'data-reload':false },
-			text     :{ value:'Hello world.','data-reload':false }
-		});
+		constructor(context,text,fontsize) {
 
-		_dpr     = window.devicePixelRatio || 1;
-		_canvas  = document.getElementById('canvas');
-		_context = _canvas.getContext('2d');
+			this.text = text;
+			this.shadowList = [];
 
-		_setting.setCallback(setup);
+			context.font = fontsize + 'px "Poiret One", cursive,sans-serif';
+			context.textBaseline = 'top';
+			this.width  = context.measureText(text).width;
+			this.height = this.getOffsetHeight(text,context.font);
 
-		window.addEventListener('resize',onResize,false);
+			this.setupShadow();
 
-		setCanvasSize();
-		setup();
-		window.requestAnimationFrame(run);
+		}
 
-	}
+		setupShadow() {
 
-	function setCanvasSize() {
+			const shadows = [
+				'0 0 10 #fff',
+				'0 0 20 #fff',
+				'0 0 30 #fff',
+				'0 0 40 #ff00de',
+				'0 0 70 #ff00de',
+				'0 0 80 #ff00de',
+				'0 0 100 #ff00de',
+				'0 0 150 #ff00de'
+			];
 
-		_canvas.width  = window.innerWidth;
-		_canvas.height = window.innerHeight;
+			for (let i = 0; i < shadows.length; i++) {
 
-	}
+				let props = shadows[i].split(' ');
+				let x     = parseFloat(props[0]);
+				let y     = parseFloat(props[1]);
+				this.shadowList.push(new Shadow(x,y,parseFloat(props[2]),props[3]));
 
-	function onResize() {
+			}
 
-		setCanvasSize();
-		setup();
+		}
 
-	}
+		getOffsetHeight(text,font) {
 
-	function setup() {
+			let span = document.createElement('span');
+			span.appendChild(document.createTextNode(text));
+			let parent = document.createElement('p');
+			parent.id = 'textMetrics';
+			parent.appendChild(span);
+			document.body.insertBefore(parent, document.body.firstChild);
 
-		let text      = _setting.get('text');
-		_textInfo     = {};
-		_context.font = _setting.get('font_size') + 'px "Poiret One", cursive,sans-serif';
-		_context.textBaseline = 'top';
-		_textInfo.width  = _context.measureText(text).width;
-		_textInfo.height = getFontOffsetHeight(text,_context.font);
+			span.style.cssText = 'font: ' + font + '; white-space: nowrap; display: inline;';
+			let height = span.offsetHeight;
+			parent.parentNode.removeChild(parent);
+			return height;
 
-		_shadows = [];
-		let shadows = [
-			'0 0 10 #fff',
-			'0 0 20 #fff',
-			'0 0 30 #fff',
-			'0 0 40 #ff00de',
-			'0 0 70 #ff00de',
-			'0 0 80 #ff00de',
-			'0 0 100 #ff00de',
-			'0 0 150 #ff00de'
-		];
+		}
 
-		for (let i = 0; i < shadows.length; i++) {
+		draw(context,centerX,centerY) {
 
-			let props = shadows[i].split(' ');
-			let x     = parseFloat(props[0]);
-			let y     = parseFloat(props[1]);
-			_shadows.push(new Shadow(x,y,parseFloat(props[2]),props[3]));
+			for (let i = 0; i < this.shadowList.length; i++) {
+
+				this.shadowList[i].draw(context,this.text,this.width,this.height,centerX,centerY);
+
+			}
+
+			context.fillStyle = '#fff';
+			context.fillText(this.text,centerX - this.width * .5, centerY - this.height * .5);
 
 		}
 
@@ -90,7 +94,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		}
 
-		draw(text,textWidth,textHeight,centerX,centerY) {
+		draw(context,text,textWidth,textHeight,centerX,centerY) {
 
 			if (this.counter % 20 == 0) {
 				this.direction *= -1;
@@ -105,18 +109,18 @@ import { Setting } from '../../../common/files/js/setting.js';
 			let x      = centerX - totalW * .5;
 			let y      = centerY - totalH * .5;
 
-			_context.save();
-			_context.beginPath();
+			context.save();
+			context.beginPath();
 
-			_context.rect(x, y, x + totalW, y + totalH);
-			_context.clip();
+			context.rect(x, y, x + totalW, y + totalH);
+			context.clip();
 
-			_context.shadowColor   = this.color;
-			_context.shadowOffsetX = this.x + totalW;
-			_context.shadowOffsetY = this.y;
-			_context.shadowBlur    = this.blur;
-			_context.fillText(text,centerX - totalW - textWidth * .5, centerY - textHeight * .5);
-			_context.restore();
+			context.shadowColor   = this.color;
+			context.shadowOffsetX = this.x + totalW;
+			context.shadowOffsetY = this.y;
+			context.shadowBlur    = this.blur;
+			context.fillText(text,centerX - totalW - textWidth * .5, centerY - textHeight * .5);
+			context.restore();
 
 			this.counter++;
 
@@ -124,58 +128,66 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	}
 
-	function run(timestamp) {
+	function initialize() {
 
-		let text    = _setting.get('text');
+		_setting = new Setting({
+			font_size:{ value:62 },
+			text     :{ value:'Hello world.' }
+		});
+
+		_dpr     = window.devicePixelRatio || 1;
+		_canvas  = document.getElementById('canvas');
+		_context = _canvas.getContext('2d');
+
+		_setting.setCallback(setup);
+
+		window.addEventListener('resize',onResize,false);
+
+		setCanvasSize();
+		setup();
+		window.requestAnimationFrame(render);
+
+	}
+
+	function setCanvasSize() {
+
+		_canvas.width  = window.innerWidth;
+		_canvas.height = window.innerHeight;
+
+	}
+
+	function onResize() {
+
+		setCanvasSize();
+		setup();
+
+	}
+
+	function setup() {
+
+		let text     = _setting.get('text');
+		let fontsize = _setting.get('font_size');
+		_text = new Text(_context,text,fontsize);
+
+	}
+
+	function render(timestamp) {
+
 		let width   = _canvas.width;
 		let height  = _canvas.height;
 		let centerX = width * .5;
 		let centerY = height * .5;
+
+		_context.clearRect(0,0,width,height);
 
 		_context.globalCompositeOperation = 'source-over';
 		_context.fillStyle = '#03072b';
 		_context.fillRect(0,0,width,height);
 
 		_context.globalCompositeOperation = 'screen';
+		_text.draw(_context,centerX,centerY);
 
-		for (let i = 0; i < _shadows.length; i++) {
-
-			_shadows[i].draw(text,_textInfo.width,_textInfo.height,centerX,centerY);
-
-		}
-
-		_context.fillStyle = '#fff';
-		_context.fillText(text,centerX - _textInfo.width * .5, centerY - _textInfo.height * .5);
-
-		window.requestAnimationFrame(run);
-
-	}
-
-	function clear(width,height) {
-
-		_context.clearRect(0,0,width,height);
-
-	}
-
-	function getRangeNumber(max,min) {
-
-		return Math.random() * (max - min) + min;
-
-	}
-
-	function getFontOffsetHeight(text,font) {
-
-		let span = document.createElement('span');
-		span.appendChild(document.createTextNode(text));
-		let parent = document.createElement('p');
-		parent.id = 'textMetrics';
-		parent.appendChild(span);
-		document.body.insertBefore(parent, document.body.firstChild);
-
-		span.style.cssText = 'font: ' + font + '; white-space: nowrap; display: inline;';
-		let height = span.offsetHeight;
-		parent.parentNode.removeChild(parent);
-		return height;
+		window.requestAnimationFrame(render);
 
 	}
 

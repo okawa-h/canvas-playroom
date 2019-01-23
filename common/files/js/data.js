@@ -45,6 +45,10 @@ const DATA = {
             "directory":"neon-text"
         },
         {
+            "name":"digital text",
+            "directory":"digital"
+        },
+        {
             "name":"dynamic text",
             "directory":"dynamic-text"
         },
