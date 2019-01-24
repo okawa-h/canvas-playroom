@@ -4,6 +4,90 @@ export class Filter {
 
 	}
 
+	drawRGBBar(context,width,height) {
+
+		const colorList = ['#fb1b1f','#20fb28','#0902f4'];
+		const barWidth  = 5;
+		let index = 0;
+		let x     = 0;
+
+		while (x < width) {
+
+			context.fillStyle = colorList[index];
+			context.fillRect(x,0,barWidth,height);
+			x += barWidth;
+			if (colorList.length - 1 <= index++) index = 0;
+
+		}
+
+	}
+
+	drawColorBar(context,width,height,canvas) {
+
+		const topColorList    = ['#b4b4b4','#b4b426','#1bb3b3','#1Ab31e','#b31ab2','#b3191b','#120fb1'];
+		const middleColorList = ['#120fb1','#101010','#b31ab2','#101010','#1bb3b3','#101010','#b4b4b4'];
+		const bottomColorList = ['#091d41','#ebebeb','#2c015b','#101010','#080808','#101010'];
+
+		const topHeight    = Math.ceil(height * .7);
+		const middleHeight = Math.ceil(height * .1);
+		const bottomHeight = Math.ceil(height * .3);
+
+		const barWidth = Math.ceil(width/topColorList.length);
+		for (let i = 0; i < topColorList.length; i++) {
+
+			const topColor    = topColorList[i];
+			const middleColor = middleColorList[i];
+			const x = barWidth * i;
+
+			context.fillStyle = topColor;
+			context.fillRect(x,0,barWidth,topHeight);
+
+			context.fillStyle = middleColor;
+			context.fillRect(x,topHeight,barWidth,middleHeight);
+
+		}
+
+		const bottomWidth = Math.ceil(width/bottomColorList.length);
+		for (let i = 0; i < bottomColorList.length; i++) {
+
+			const color = bottomColorList[i];
+			const x = bottomWidth * i;
+			const y = topHeight + middleHeight;
+
+			context.fillStyle = color;
+			context.fillRect(x,y,bottomWidth,bottomHeight);
+
+		}
+
+	}
+
+	drawTile(context,width,height) {
+
+		let cloneCanavs    = document.createElement('canvas');
+		let cloneContext   = cloneCanavs.getContext('2d');
+		cloneCanavs.width  = width;
+		cloneCanavs.height = height;
+
+		const imageData  = context.getImageData(0,0,width,height);
+		cloneContext.putImageData(imageData,0,0);
+
+		const tileWidth  = Math.ceil(width / 3);
+		const ratio      = tileWidth/width;
+		const tileHeight = Math.ceil(height * ratio);
+
+		for (let i = 0; i < 3; i++) {
+			for (let l = 0; l < 3; l++) {
+
+				const x = tileWidth * i;
+				const y = tileHeight * l;
+				context.drawImage(cloneCanavs,0,0,width,height,x,y,tileWidth,tileHeight);
+
+			}
+
+		}
+
+	}
+
 	grayScale(context,width,height) {
 
 		let imageData = context.getImageData(0,0,width,height);

@@ -31,7 +31,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		setProcessing() {
 
-			const processing = [this.filter.inversion,this.filter.glitch,this.filter.extendColor];
+			const processing = [this.filter.drawTile,this.filter.drawRGBBar,this.filter.drawColorBar,this.filter.inversion,this.filter.glitch,this.filter.extendColor];
 			this.draw = processing[Math.floor(Math.random() * processing.length)];
 
 		}
@@ -41,6 +41,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.life--;
 
 			this.filter.glitchSlip(context,width,height,20);
+			// this.filter.drawColorBar(context,width,height,20);
+			// this.filter.drawTile(context,width,height);
 
 			if (this.life <= 0) {
 
