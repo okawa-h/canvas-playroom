@@ -42,7 +42,124 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	class ImageObject {
+	class Guide {
+
+		constructor(object) {
+
+			this.corner = [];
+
+			let parentClass = this;
+			let element = document.createElement('div');
+			element.className = 'object-guide';
+
+			const positionList = ['left-top','right-top','right-bottom','left-bottom'];
+			for (let i = 0; i < positionList.length; i++) {
+
+				const positionName = positionList[i];
+				let cornerElm = document.createElement('div');
+				cornerElm.className = 'object-guide-corner ' + positionName;
+				cornerElm.setAttribute('data-index',i);
+				this.corner.push(cornerElm);
+
+				element.appendChild(cornerElm);
+				cornerElm.addEventListener('mousedown',function(event) {
+					parentClass.onDownCorner(event,parentClass);
+				},true);
+
+			}
+
+			document.getElementById('all').appendChild(element);
+
+			this.id      = object.id;
+			this.element = element;
+			this.object  = object;
+			this.element.addEventListener('mousedown',function(event) {
+				parentClass.onDown(event,parentClass);
+			},true);
+
+		}
+
+		onDown(event,parent) {
+
+			const point = new Point(event.clientX,event.clientY);
+			parent.addClass('active');
+			parent.addClass('grab');
+			parent.removeClass('grabCorner');
+
+			parent.object.grab.x = parent.object.x - point.x;
+			parent.object.grab.y = parent.object.y - point.y;
+
+		}
+
+		onDownCorner(event,parent) {
+
+			parent.addClass('active');
+			parent.removeClass('grab');
+			parent.addClass('grabCorner');
+
+			event.target.classList.add('active');
+
+		}
+
+		set(x,y,width,height,scale) {
+
+			this.element.style.top  = y + 'px';
+			this.element.style.left = x + 'px';
+
+			this.element.style.width  = width * scale + 'px';
+			this.element.style.height = height * scale + 'px';
+
+		}
+
+		getActiveCornerIndex() {
+
+			for (let i = 0; i < this.corner.length; i++) {
+
+				let corner = this.corner[i];
+				if (corner.classList.contains('active')) {
+
+					return corner.dataset.index;
+
+				}
+
+			}
+
+			return null;
+
+		}
+
+		removeCornerClass(name) {
+
+			for (let i = 0; i < this.corner.length; i++) {
+
+				let corner = this.corner[i];
+				corner.classList.remove(name);
+
+			}
+
+		}
+
+		addClass(name) {
+
+			this.element.classList.add(name);
+
+		}
+
+		removeClass(name) {
+
+			this.element.classList.remove(name);
+
+		}
+
+		hasClass(name) {
+
+			return this.element.classList.contains(name);
+
+		}
+
+	}
+
+	class Container {
 
 		constructor(id,image) {
 
@@ -51,10 +168,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.x     = 0;
 			this.y     = 0;
 			this.scale = 1;
-
-			this.isActive = false;
-			this.isGrab   = false;
-			this.isGrabCorner = false;
 
 			this.grab   = {};
 			this.grab.x = 0;
@@ -65,37 +178,23 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.corner.points = this.getCornerPoints();
 			this.corner.defaultPoints = this.getCornerPoints();
 
+			this.guide = new Guide(this);
+
 		}
 
 		onDown(point) {
 
-			this.isActive     = false;
-			this.isGrab       = false;
-			this.isGrabCorner = false;
+			this.guide.removeClass('active');
+			this.guide.removeClass('grab');
+			this.guide.removeClass('grabCorner');
 
-			if (this.isInclude(point)) {
-
-				this.grab.x = this.x - point.x;
-				this.grab.y = this.y - point.y;
-
-				this.isActive = true;
-				this.isGrab   = true;
-
-			}
-
-			if (this.isIncludeCorner(point)) {
-
-				this.isActive     = true;
-				this.isGrab       = false;
-				this.isGrabCorner = true;
-
-			}
+			this.guide.removeCornerClass('active');
 
 		}
 
 		onMove(point) {
 
-			if (this.isGrab) {
+			if (this.guide.hasClass('grab')) {
 
 				this.x = point.x + this.grab.x;
 				this.y = point.y + this.grab.y;
@@ -103,9 +202,9 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			}
 
-			if (this.isGrabCorner) {
+			if (this.guide.hasClass('grabCorner')) {
 
-				const index            = this.grabCornerIndex;
+				const index            = this.guide.getActiveCornerIndex();
 				const diagonalIndex    = this.getDiagonalIndex(index);
 				const originalDistance = this.corner.defaultPoints[diagonalIndex].getDistance(this.corner.defaultPoints[index]);
 				const distance         = this.corner.points[diagonalIndex].getDistance(point);
@@ -126,8 +225,10 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		onUp() {
 
-			this.isGrab       = false;
-			this.isGrabCorner = false;
+			this.guide.removeClass('grab');
+			this.guide.removeClass('grabCorner');
+
+			this.guide.removeCornerClass('active');
 
 		}
 
@@ -143,6 +244,14 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			this.scale = parseFloat(scale.toFixed(5));
 			if (scale <= .1) this.scale = .1;
+
+		}
+
+		update() {
+
+			this.guide.set(this.x,this.y,this.image.width,this.image.height,this.scale);
+
+			return this;
 
 		}
 
@@ -171,79 +280,9 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		isInclude(point) {
-
-			return (
-				this.x < point.x &&
-				this.x + this.image.width * this.scale > point.x &&
-				this.y < point.y &&
-				this.y + this.image.height * this.scale > point.y
-			);
-
-		}
-
-		isIncludeCorner(point) {
-
-			for (let i = 0; i < this.corner.points.length; i++) {
-
-				const cornerPoint = this.corner.points[i];
-				const isInclude   = cornerPoint.isInclude(point,this.corner.radius);
-				if (isInclude) {
-
-					this.grabCornerIndex = i;
-					return true;
-
-				}
-
-			}
-
-			return false;
-
-		}
-
 		draw(context) {
 
 			context.drawImage(this.image,this.x,this.y,this.image.width * this.scale,this.image.height * this.scale);
-
-			if (this.isActive) {
-
-				let color = '#f00';
-				this.drawFrame(context,color);
-				this.drawCornerPoint(context,color);
-
-			}
-
-		}
-
-		drawFrame(context,color) {
-
-			context.beginPath();
-			for (let i = 0; i < this.corner.points.length; i++) {
-
-				const point = this.corner.points[i];
-				if (i == 0) context.moveTo(point.x, point.y);
-					else context.lineTo(point.x, point.y);
-
-			}
-			context.closePath();
-			context.lineWidth = 2;
-			context.strokeStyle = color;
-			context.stroke();
-
-		}
-
-		drawCornerPoint(context,color) {
-
-			for (let i = 0; i < this.corner.points.length; i++) {
-
-				const point = this.corner.points[i];
-				context.beginPath();
-				context.arc(point.x, point.y, this.corner.radius, 0, Math.PI*2, true);
-				context.closePath();
-				context.fillStyle = color;
-				context.fill();
-
-			}
 
 		}
 
@@ -301,7 +340,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function initialize() {
 
 		_setting = new Setting({
-			scale:{ value:50,min:0 }
+			scale   :{ value:50,min:0 },
+			download:{ value:'image',elm:'button',callback:downloadImage }
 		});
 
 		_canvas  = document.getElementById('canvas');
@@ -323,17 +363,17 @@ import { Filter } from '../../../common/files/js/filter.js';
 				let image = new Image();
 				image.onload = function() {
 
-					_objects.push(new ImageObject(i,image));
+					_objects.push(new Container(i,image));
 
 					counter++;
 					if (imageList.length <= counter) {
 
-						window.addEventListener('resize',onResize,false);
 						setup();
 
-						_canvas.addEventListener('mousedown',onDown,false);
-						_canvas.addEventListener('mousemove',onMove,false);
-						_canvas.addEventListener('mouseup',onUp,false);
+						window.addEventListener('resize',onResize,false);
+						window.addEventListener('mousedown',onDown,true);
+						window.addEventListener('mousemove',onMove,false);
+						window.addEventListener('mouseup',onUp,false);
 
 						window.requestAnimationFrame(render);
 
@@ -346,6 +386,13 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 		_backImage.src = './files/img/table.png';
+
+	}
+
+	function downloadImage() {
+
+		let element = document.createElement('a');
+
 
 	}
 
@@ -364,9 +411,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function onDown(event) {
 
-		const offsetX = _canvas.getBoundingClientRect().left;
-		const offsetY = _canvas.getBoundingClientRect().top;
-		const point   = new Point(event.clientX - offsetX,event.clientY - offsetY);
+		const point = new Point(event.clientX,event.clientY);
 
 		for (let i = 0; i < _objects.length; i++) {
 
@@ -379,9 +424,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function onMove(event) {
 
-		const offsetX = _canvas.getBoundingClientRect().left;
-		const offsetY = _canvas.getBoundingClientRect().top;
-		const point   = new Point(event.clientX - offsetX,event.clientY - offsetY);
+		const point = new Point(event.clientX,event.clientY);
 
 		for (let i = 0; i < _objects.length; i++) {
 
@@ -434,11 +477,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		for (let i = 0; i < _objects.length; i++) {
 
-			_objects[i].draw(_context);
+			_objects[i].update().draw(_context);
 
 		}
 
-		_effect.counter(_context,width,height);
+		// _effect.counter(_context,width,height);
 
 		window.requestAnimationFrame(render);
 

@@ -5,23 +5,8 @@ export class Setting {
 		let html = '<ul>';
 		for (var name in property) {
 
-			let value = property[name].value;
-			let type  = 'string';
-			if (typeof value == 'number') type = 'number';
-
 			property[name].name = name;
-			property[name].type = type;
-
-			html += '<li>';
-			html += '<label for="setting-' + name + '">' + name + '</label>';
-
-			let attributes = [];
-			for (var key in property[name]) {
-				attributes.push(key + '="' + property[name][key] + '"');
-			}
-
-			html += '<input id="setting-' + name + '" ' + attributes.join(' ') + '>';
-			html += '</li>';
+			html += this.getListHtml(property[name]);
 
 		}
 		html += '</ul>';
@@ -49,7 +34,9 @@ export class Setting {
 		}
 
 		this.parent.querySelector('.close').addEventListener('click',function() {
+
 			parent.classList.toggle('open');
+
 		});
 
 	}
@@ -73,6 +60,31 @@ export class Setting {
 	setCallback(callback) {
 
 		this.callback = callback;
+
+	}
+
+	getListHtml(param) {
+
+		let html  = '';
+		let value = param.value;
+
+		if (!param['type'] && typeof value == 'number') param.type = 'number';
+
+		html += '<li>';
+		html += '<label for="setting-' + param.name + '">' + param.name + '</label>';
+
+		let attributes = [];
+		for (var key in param) {
+			attributes.push(key + '="' + param[key] + '"');
+		}
+
+		let elm = 'input';
+		if (param['elm']) elm = param.elm;
+
+		html += '<' + elm + ' id="setting-' + param.name + '" ' + attributes.join(' ') + '>';
+		if (elm == 'button') html += value + '</button>';
+		html += '</li>';
+		return html;
 
 	}
 

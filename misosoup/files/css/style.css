@@ -1,0 +1,59 @@
+@charset "UTF-8";
+
+#all {
+    position: relative;
+    overflow: hidden;
+}
+
+.object-guide {
+    position: absolute;
+    border: 2px solid transparent;
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: border .1s ease-in-out;
+}
+
+.object-guide.active {
+    border-color: #7ca8b9;
+    cursor: move;
+}
+
+.object-guide.active .object-guide-corner {
+    background-color: #7ca8b9;
+}
+
+.object-guide-corner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transition: background .1s ease-in-out;
+}
+
+.object-guide.active .object-guide-corner.active {
+    background-color: red;
+}
+
+.object-guide-corner.left-top {
+    top: -7px;
+    left: -7px;
+    cursor: nwse-resize;
+}
+
+.object-guide-corner.right-top {
+    top: -7px;
+    right: -7px;
+    cursor: nesw-resize;
+}
+
+.object-guide-corner.right-bottom {
+    bottom: -7px;
+    right: -7px;
+    cursor: nwse-resize;
+}
+
+.object-guide-corner.left-bottom {
+    bottom: -7px;
+    left: -7px;
+    cursor: nesw-resize;
+}
