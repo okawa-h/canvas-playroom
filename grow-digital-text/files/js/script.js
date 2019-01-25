@@ -63,22 +63,18 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.y     = y;
 			this.text  = text;
 			this.color = color;
-			this.setRandomDirection();
+
+			this.direction = {
+				x:[-1,1][Math.floor(Math.random()*2)],
+				y:[-1,1][Math.floor(Math.random()*2)]
+			}
+
 			this.setRandomVelocity();
 
 			this.width  = width;
 			this.height = height;
 
 			this.isCollision = false;
-
-		}
-
-		setRandomDirection() {
-
-			this.direction = {
-				x:[-1,1][Math.floor(Math.random()*2)],
-				y:[-1,1][Math.floor(Math.random()*2)]
-			}
 
 		}
 
@@ -133,14 +129,13 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		constructor() {
 
-			this.dying      = 0;
 			this.isSaturation = false;
 			this.objectList = [];
 			this.colorList  = ['#ff0000','#ff007f','#ff00ff','#7f00ff','#0000ff','#007fff','#00ffff','#00ff7f','#00ff00','#7fff00','#ffff00','#ff7f00'];
 
 		}
 
-		addText(context,text,fontsize,x,y) {
+		addText(context,text,fontsize,x,y,parentObject) {
 
 			context.font = fontsize + 'px "Press Start 2P", cursive,sans-serif';
 			context.textBaseline = 'top';
@@ -149,7 +144,14 @@ import { Filter } from '../../../common/files/js/filter.js';
 			const textWidth  = context.measureText(text).width;
 			const textHeight = this.getOffsetHeight(text,context.font);
 
-			this.objectList.push(new Text(x,y,text,color,textWidth,textHeight));
+			let object = new Text(x,y,text,color,textWidth,textHeight);
+			if (parentObject) {
+
+				object.direction.x = parentObject.direction.x;
+				object.direction.y = parentObject.direction.y;
+
+			}
+			this.objectList.push(object);
 
 		}
 
@@ -191,9 +193,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 				if (object.isCollision && .95 < Math.random() && !this.isSaturation) {
 
 					object.isCollision = false;
-					let x = object.x;
-					let y = object.y;
-					this.addText(context,text,fontsize,x,y);
+					this.addText(context,text,fontsize,object.x,object.y,object);
 
 				}
 
