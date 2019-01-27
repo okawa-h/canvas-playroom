@@ -61,58 +61,33 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			this.x     = x;
 			this.y     = y;
+			this.position = y;
 			this.text  = text;
 			this.color = color;
-
-			this.direction = {
-				x:[-1,1][Math.floor(Math.random()*2)],
-				y:[-1,1][Math.floor(Math.random()*2)]
-			}
-
-			this.setRandomVelocity();
 
 			this.width  = width;
 			this.height = height;
 
-			this.isCollision = false;
+			this.life = getRangeNumber(0,50);
 
 		}
 
-		setRandomVelocity() {
+		update(y) {
 
-			this.velocity = { x:getRangeNumber(1,3),y:getRangeNumber(1,3) };
+			this.life--;
 
-		}
+			this.y = this.position + y;
 
-		update(minX,minY,maxX,maxY) {
+			if (this.life <= 0) {
+				this.y += getRangeNumber(-10,10);
 
-			maxX -= this.width;
-			maxY -= this.height;
-
-			if (maxX <= this.x) {
-				this.direction.x = -1;
-				this.isCollision = true;
 			}
 
-			if (this.x <= minX) {
-				this.direction.x = 1;
-				this.isCollision = true;
+			if (this.life <= -10) {
+
+				this.life = getRangeNumber(0,50);
+
 			}
-
-			if (maxY <= this.y) {
-				this.direction.y = -1;
-				this.isCollision = true;
-			}
-
-			if (this.y <= minY) {
-				this.direction.y = 1;
-				this.isCollision = true;
-			}
-
-			if (this.isCollision) this.setRandomVelocity();
-
-			this.x += this.velocity.x * this.direction.x;
-			this.y += this.velocity.y * this.direction.y;
 
 		}
 
@@ -129,13 +104,16 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		constructor() {
 
-			this.isSaturation = false;
+			this.y          = 0;
+			this.height     = 0;
+			this.margin     = 5;
 			this.objectList = [];
-			this.colorList  = ['#ff0000','#ff007f','#ff00ff','#7f00ff','#0000ff','#007fff','#00ffff','#00ff7f','#00ff00','#7fff00','#ffff00','#ff7f00'];
+			// this.colorList  = ['#ff0000','#ff007f','#ff00ff','#7f00ff','#0000ff','#007fff','#00ffff','#00ff7f','#00ff00','#7fff00','#ffff00','#ff7f00'];
+			this.colorList  = ['#ff007f','#ff00ff','#7f00ff','#0000ff','#007fff','#00ffff'];
 
 		}
 
-		addText(context,text,fontsize,x,y,parentObject) {
+		addText(context,text,fontsize) {
 
 			context.font = fontsize + 'px "Press Start 2P", cursive,sans-serif';
 			context.textBaseline = 'top';
@@ -144,13 +122,10 @@ import { Filter } from '../../../common/files/js/filter.js';
 			const textWidth  = context.measureText(text).width;
 			const textHeight = this.getOffsetHeight(text,context.font);
 
-			let object = new Text(x,y,text,color,textWidth,textHeight);
-			if (parentObject) {
+			const y = this.height + textHeight + this.margin;
+			this.height = y;
 
-				object.direction.x = parentObject.direction.x;
-				object.direction.y = parentObject.direction.y;
-
-			}
+			const object = new Text(0,y,text,color,textWidth,textHeight);
 			this.objectList.push(object);
 
 		}
@@ -171,33 +146,19 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		update(context,text,fontsize,width,height) {
+		update(context,height) {
 
-			if (!this.isSaturation && 300 <= this.objectList.length) this.isSaturation = true;
-
-			if (this.isSaturation) {
-
-				if (this.objectList.length <= 1) this.isSaturation = false;
-				this.objectList.pop();
-
-			}
-
-			if (this.objectList.length <= 0) this.addText(context,text,fontsize,width * .5,height * .5);
+			this.y -= 2;
 
 			const length = this.objectList.length;
 			for (let i = 0; i < length; i++) {
 
 				let object = this.objectList[i];
-				object.update(0,0,width,height);
-
-				if (object.isCollision && .95 < Math.random() && !this.isSaturation) {
-
-					object.isCollision = false;
-					this.addText(context,text,fontsize,object.x,object.y,object);
-
-				}
+				object.update(this.y);
 
 			}
+
+			if (this.y <= -this.height) this.y = height;
 
 			return this;
 
@@ -218,8 +179,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function initialize() {
 
 		_setting = new Setting({
-			font_size:{ value:window.innerWidth * .02,'data-reload':false },
-			text     :{ value:'Hello world.','data-reload':false }
+			font_size:{ value:window.innerWidth * .02 }
 		});
 
 		_dpr     = window.devicePixelRatio || 1;
@@ -230,11 +190,15 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_effect = new Effect();
 
-		window.addEventListener('resize',onResize,false);
+		loadCode(function(data) {
 
-		setCanvasSize();
-		setup();
-		window.requestAnimationFrame(render);
+			window.addEventListener('resize',onResize,false);
+
+			setCanvasSize();
+			setup(data);
+			window.requestAnimationFrame(render);
+
+		});
 
 	}
 
@@ -245,6 +209,16 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
+	function loadCode(callback) {
+
+		let myXml = new XMLHttpRequest();
+
+		myXml.onload = callback;
+		myXml.open('GET','files/js/script.js',true);
+		myXml.send(null);
+
+	}
+
 	function onResize() {
 
 		setCanvasSize();
@@ -252,16 +226,25 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	function setup() {
+	function setup(data) {
+
+		let fontsize = parseFloat(_setting.get('font_size'));
+		let response = data.target.response;
+		let textList = response.split(/\n/);
 
 		_textManager = new TextManager();
+
+		for (let i = 0; i < textList.length; i++) {
+
+			let text = textList[i];
+			_textManager.addText(_context,text,fontsize);
+
+		}
 
 	}
 
 	function render(timestamp) {
 
-		let text     = _setting.get('text');
-		let fontsize = parseFloat(_setting.get('font_size'));
 		let width  = _canvas.width;
 		let height = _canvas.height;
 
@@ -270,7 +253,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 		_context.fillStyle = '#000';
 		_context.fillRect(0,0,width,height);
 
-		_textManager.update(_context,text,fontsize,width,height).draw(_context);
+		_textManager.update(_context,height).draw(_context);
 
 		_effect.counter(_context,width,height);
 

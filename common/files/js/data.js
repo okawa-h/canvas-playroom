@@ -49,6 +49,10 @@ const DATA = {
             "directory":"digital"
         },
         {
+            "name":"code",
+            "directory":"code"
+        },
+        {
             "name":"grow text",
             "directory":"grow-digital-text"
         },
