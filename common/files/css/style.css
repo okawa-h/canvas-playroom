@@ -82,12 +82,13 @@ canvas {
     }
 
     #setting-ui ul {
+        display: table;
         padding: 20px;
     }
 
         #setting-ui ul li {
-            display: flex;
-            margin-bottom: .5em;
+            display: table-row;
+            padding-bottom: .5em;
             font-size: 12px;
         }
 
@@ -96,31 +97,14 @@ canvas {
         }
 
             #setting-ui ul li label {
-                flex-basis: 50%;
-                margin-right: 1em;
+                display: table-cell;
+                padding-right: 1em;
+                padding-bottom: .5em;
                 color: #fff;
             }
 
             #setting-ui ul li input {
-                flex-basis: 50%;
-                width: 100%;
-                margin: 0;
-                padding: .2em .5em;
-                border: 2px solid #eee;
-                border-radius: 3px;
-                background: #fff;
-                box-sizing: border-box;
-                font-size: 10px;
-                line-height: 1;
-                transition: border-color .15s ease-in-out;
-                outline: none;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-            }
-
-            #setting-ui ul li button {
-                flex-basis: 50%;
+                display: table-cell;
                 width: 100%;
                 margin: 0;
                 padding: .2em .5em;
@@ -145,9 +129,33 @@ canvas {
                 text-align: right;
             }
 
+            #setting-ui ul li button {
+                display: table-cell;
+                width: 100%;
+                margin: 0;
+                padding: .6em 1em;
+                border: none;
+                border-radius: 2px;
+                background-color: #eee;
+                box-sizing: border-box;
+                font-size: 10px;
+                line-height: 1;
+                transition: all .15s ease-in-out;
+                outline: none;
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+                cursor: pointer;
+            }
+
+            #setting-ui ul li button:hover {
+                background-color: #2b7ffc;
+                color: #fff;
+            }
+
     #setting-ui .close {
         padding: 1em 2em;
-        background-color: rgba(0,0,0,0.6);
+        background-color: rgba(0,0,0,.6);
         color: #fff;
         font-size: 10px;
         line-height: 1;

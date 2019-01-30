@@ -2,17 +2,16 @@ export class Setting {
 
 	constructor(property) {
 
-		let html = '<ul>';
-		for (var name in property) {
+		this.property = property;
 
-			property[name].name = name;
-			html += this.getListHtml(property[name]);
+		let html = '<ul>';
+		for (let name in this.property) {
+
+			html += this.getListHtml(name);
 
 		}
 		html += '</ul>';
 		html += '<p class="close"></p>';
-
-		this.property = property;
 
 		let parent = document.createElement('div');
 		parent.id = 'setting-ui';
@@ -21,17 +20,7 @@ export class Setting {
 		this.parent = document.getElementById('setting-ui');
 		this.parent.innerHTML = html;
 
-		let inputs = this.parent.querySelectorAll('input');
-		for (var i = 0; i < inputs.length; i++) {
-			let parentClass = this;
-			inputs[i].addEventListener('change',function() {
-
-				let isReload = true;
-				if (this.dataset.reload == 'false') isReload = false;
-				parentClass.set(this.name,this.value,isReload);
-
-			});
-		}
+		this.setEvent();
 
 		this.parent.querySelector('.close').addEventListener('click',function() {
 
@@ -63,26 +52,54 @@ export class Setting {
 
 	}
 
-	getListHtml(param) {
+	setEvent() {
 
-		let html  = '';
-		let value = param.value;
+		let parentClass = this;
 
-		if (!param['type'] && typeof value == 'number') param.type = 'number';
+		for (let name in this.property) {
 
-		html += '<li>';
-		html += '<label for="setting-' + param.name + '">' + param.name + '</label>';
+			let param  = this.property[name];
+			let target = document.getElementById(`setting-${name}`);
 
-		let attributes = [];
-		for (var key in param) {
-			attributes.push(key + '="' + param[key] + '"');
+			if (param.elm == 'input') {
+				target.addEventListener('change',function() {
+
+					let isReload = this.dataset.reload != 'false';
+					parentClass.set(name,this.value,isReload);
+
+				});
+			}
+
+			if (param.elm == 'button') {
+
+				target.addEventListener('click',param['onclick']);
+
+			}
+
 		}
 
-		let elm = 'input';
-		if (param['elm']) elm = param.elm;
+	}
 
-		html += '<' + elm + ' id="setting-' + param.name + '" ' + attributes.join(' ') + '>';
-		if (elm == 'button') html += value + '</button>';
+	getListHtml(name) {
+
+		let html  = '';
+		let param = this.property[name];
+		let value = param.value;
+		let attributes = [];
+
+		html += '<li>';
+		html += `<label for="setting-${name}">${name}</label>`;
+
+		if (!param['elm']) param.elm = 'input';
+		if (!param['type'] && typeof value == 'number') param.type = 'number';
+
+		for (let key in param) {
+			if (key == 'onclick' || key == 'elm') continue;
+			attributes.push(`${key}="${param[key]}"`);
+		}
+
+		html += `<${param.elm} id="setting-${name}" ${attributes.join(' ')}>`;
+		if (param.elm == 'button') html += value + '</button>';
 		html += '</li>';
 		return html;
 

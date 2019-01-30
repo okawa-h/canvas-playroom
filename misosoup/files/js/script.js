@@ -6,7 +6,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 	'use strict';
 
 	let _canvas,_context;
-	let _setting,_objects,_backImage,_effect;
+	let _setting,_objects,_backImage,_effect,_counter;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
@@ -73,6 +73,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.id      = object.id;
 			this.element = element;
 			this.object  = object;
+
+			this.setDelete(element);
 			this.element.addEventListener('mousedown',function(event) {
 				parentClass.onDown(event,parentClass);
 			},true);
@@ -111,20 +113,34 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		setDelete(parent) {
+
+			let object  = this.object;
+			let element = document.createElement('div');
+			element.className = 'object-guide-ui delete';
+			parent.appendChild(element);
+			element.addEventListener('mousedown',function(event) {
+				object.delete();
+			},true);
+
+		}
+
 		getActiveCornerIndex() {
 
 			for (let i = 0; i < this.corner.length; i++) {
 
 				let corner = this.corner[i];
-				if (corner.classList.contains('active')) {
-
-					return corner.dataset.index;
-
-				}
+				if (corner.classList.contains('active')) return corner.dataset.index;
 
 			}
 
 			return null;
+
+		}
+
+		delete() {
+
+			this.element.remove();
 
 		}
 
@@ -255,6 +271,13 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		delete() {
+
+			deleteObject(this.id);
+			this.guide.delete();
+
+		}
+
 		getCornerPoints() {
 
 			const imageW = this.image.width * this.scale;
@@ -340,10 +363,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function initialize() {
 
 		_setting = new Setting({
-			scale   :{ value:50,min:0 },
-			download:{ value:'image',elm:'button',callback:downloadImage }
+			image     :{ value:'download',elm:'button',onclick:downloadImage },
+			stamp     :{ value:'upload',elm:'button',onclick:uploadStamp },
+			background:{ value:'upload',elm:'button',onclick:uploadBack }
 		});
 
+		_counter = 0;
 		_canvas  = document.getElementById('canvas');
 		_context = _canvas.getContext('2d');
 
@@ -356,7 +381,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			_objects = [];
 			const imageList = ['age.png','asari.png','nameko.png','toufu.png'];
-			let counter = 0;
 
 			for (let i = 0; i < imageList.length; i++) {
 
@@ -365,8 +389,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 					_objects.push(new Container(i,image));
 
-					counter++;
-					if (imageList.length <= counter) {
+					_counter++;
+					if (imageList.length <= _counter) {
 
 						setup();
 
@@ -391,8 +415,69 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function downloadImage() {
 
-		let element = document.createElement('a');
+		let element      = document.createElement('a');
+		element.href     = _canvas.toDataURL('image/png');
+		element.download = 'image.png';
+		element.click();
 
+	}
+
+	function uploadImage(callback) {
+
+		function fileLoad() {
+
+			let image = new Image();
+			image.onload = function() {
+
+				callback(image);
+
+			}
+			image.src = this.result;
+
+		}
+
+		let element  = document.createElement('input');
+		element.type = 'file';
+		element.addEventListener('change',function(event) {
+
+			let files  = event.target.files;
+			let reader = new FileReader();
+			reader.addEventListener('load', fileLoad, false);
+			reader.readAsDataURL(files[0]);
+
+		},false);
+		element.click();
+
+	}
+
+	function uploadBack() {
+
+		uploadImage(function(image) {
+
+			_backImage = image;
+
+		});
+
+	}
+
+	function uploadStamp() {
+
+		uploadImage(function(image) {
+
+			_counter++;
+			_objects.push(new Container(_counter,image));
+
+		});
+
+	}
+
+	function deleteObject(id) {
+
+		for (let i = 0; i < _objects.length; i++) {
+
+			if (_objects[i].id == id) _objects.splice(i,1);
+
+		}
 
 	}
 
