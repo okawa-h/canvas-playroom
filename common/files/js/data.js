@@ -13,6 +13,10 @@ const DATA = {
             "directory":"bloom-image"
         },
         {
+        	"name":"gray image",
+        	"directory":"gray-image"
+        },
+        {
             "name":"vaporwave image",
             "directory":"vaporwave-image"
         },
