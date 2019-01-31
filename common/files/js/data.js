@@ -101,6 +101,10 @@ const DATA = {
             "directory":"free-particle"
         },
         {
+            "name":"convex hull",
+            "directory":"convex-hull"
+        },
+        {
             "name":"grid particle line",
             "directory":"grid-particle-line"
         },
