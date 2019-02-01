@@ -14,11 +14,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		constructor(width,height) {
 
-			this.setLife(width,height);
+			this.reset(width,height);
 
 		}
 
-		setLife(width,height) {
+		reset(width,height) {
 
 			this.life  = getRangeNumber(0,10);
 			this.dying = getRangeNumber(10,100);
@@ -31,9 +31,17 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		counter(context,maxX,maxY,width,height) {
+		update(width,height) {
 
 			this.life--;
+
+			if (this.life <= -this.dying) this.reset(width,height);
+
+			return this;
+
+		}
+
+		draw(context,maxX,maxY) {
 
 			if (this.life <= 0) {
 
@@ -54,8 +62,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			}
 
-			if (this.life <= -this.dying) this.setLife(width,height);
-
 		}
 
 	}
@@ -66,7 +72,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			this.list = [];
 
-			for (var i = 0; i < length; i++) {
+			for (let i = 0; i < length; i++) {
 
 				this.list.push(new GrayEffect(width,height));
 
@@ -74,11 +80,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		counter(context,maxX,maxY,width,height) {
+		draw(context,maxX,maxY,width,height) {
 
-			for (var i = 0; i < this.list.length; i++) {
+			for (const effect of this.list) {
 
-				this.list[i].counter(context,maxX,maxY,width,height);
+				effect.update(width,height).draw(context,maxX,maxY);
 
 			}
 
@@ -101,30 +107,22 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_setting.setCallback(setup);
 
-		_image = new Image();
-		_image.onload = function() {
+		loadImage(function(image) {
 
+			_image = image;
 			window.addEventListener('resize',onResize,false);
-
-			setCanvasSize();
-			setup();
+			window.dispatchEvent(new Event('resize'));
 			window.requestAnimationFrame(render);
 
-		}
-		_image.src = './image.jpg';
-
-	}
-
-	function setCanvasSize() {
-
-		_canvas.width  = window.innerWidth;
-		_canvas.height = window.innerHeight;
+		},'./image.jpg');
 
 	}
 
 	function onResize() {
 
-		setCanvasSize();
+		_canvas.width  = window.innerWidth;
+		_canvas.height = window.innerHeight;
+
 		setup();
 
 	}
@@ -141,29 +139,19 @@ import { Filter } from '../../../common/files/js/filter.js';
 		let maxY   = _setting.get('glitch_y');
 		let width  = _canvas.width;
 		let height = _canvas.height;
-		let imageW = _image.width;
-		let imageH = _image.height;
-		let x      = (width - imageW) * .5;
-		let y      = (height - imageH) * .5;
+		let x      = (width - _image.width) * .5;
+		let y      = (height - _image.height) * .5;
 
 		_context.clearRect(0,0,width,height);
 
-		_context.globalCompositeOperation = 'source-over';
-		_context.rect(0,0,width,height);
 		_context.fillStyle = '#fff';
-		_context.fill();
+		_context.fillRect(0,0,width,height);;
 
 		_context.drawImage(_image,x,y);
 
-		_effect.counter(_context,maxX,maxY,width,height);
+		_effect.draw(_context,maxX,maxY,width,height);
 
 		window.requestAnimationFrame(render);
-
-	}
-
-	function clear(width,height) {
-
-		
 
 	}
 
@@ -173,5 +161,16 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
+	function loadImage(onLoad,src) {
+
+		let image = new Image();
+		image.onload = function(event) {
+
+			onLoad(image);
+
+		}
+		image.src = src;
+
+	}
 
 })(window);

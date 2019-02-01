@@ -37,25 +37,25 @@
 .object-guide-corner.left-top {
     top: -7px;
     left: -7px;
-    cursor: nwse-resize;
+    cursor: grab;
 }
 
 .object-guide-corner.right-top {
     top: -7px;
     right: -7px;
-    cursor: nesw-resize;
+    cursor: grab;
 }
 
 .object-guide-corner.right-bottom {
     bottom: -7px;
     right: -7px;
-    cursor: nwse-resize;
+    cursor: grab;
 }
 
 .object-guide-corner.left-bottom {
     bottom: -7px;
     left: -7px;
-    cursor: nesw-resize;
+    cursor: grab;
 }
 
 .object-guide.active .object-guide-ui {
@@ -69,14 +69,26 @@
 }
 
 .object-guide-ui.delete {
-    top: -30px;
-    right: -30px;
+    top: -40px;
+    right: 0;
     width: 20px;
     height: 20px;
     border-radius: 50%;
     background-color: #7ca8b9;
+    cursor: pointer;
 }
 
 .object-guide-ui.delete:hover{
     background-color: red;
+}
+
+.object-guide-ui.rotate {
+    top: -50px;
+    left: 50%;
+    width: 60px;
+    height: 10px;
+    margin-left: -30px;
+    border-radius: 6px;
+    background-color: #7ca8b9;
+    cursor: grab;
 }

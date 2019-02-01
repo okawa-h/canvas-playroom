@@ -13,15 +13,46 @@
 <script src="common/files/js/data.js"></script>
 <script>
 
-	let html = '<ul id="page-navi">';
-	for (const file of DATA.files) {
-		html += '<li><a href="./' + file.directory + '/"><figure>';
-		html += '<img src="./' + file.directory + '/thumnail.png">';
-		html += '<figcaption>' + file.name + '</figcaption>';
-		html += '</figure></a></li>';
+	function init() {
+
+		let dataHtml  = '<article class="data-article">';
+		let parseData = {};
+
+		for (const file of DATA.files) {
+
+			const category = file.category;
+			if (!parseData.hasOwnProperty(category)) parseData[category] = { html:'' };
+
+			let html = '';
+			html += '<li><a href="./' + file.directory + '/"><figure>';
+			html += '<span><img src="./' + file.directory + '/thumnail.png"></span>';
+			html += '<figcaption>' + file.name + '</figcaption>';
+			html += '</figure></a></li>';
+
+			parseData[category].html += html;
+
+		}
+
+		for (key in parseData) {
+
+			let listHtml = parseData[key].html;
+			let html = '<section class="category-section"><div class="wrap">';
+			html += '<h2 class="name">' + key + '</h2>';
+			html += '<ul class="list">';
+			html += listHtml;
+			html += '</ul>';
+			html += '</div></section>';
+			dataHtml += html;
+
+		}
+
+		// console.log(parseData)
+		document.getElementById('all').innerHTML = dataHtml + '</article>';
 	}
-	html += '</ul>';
-	document.getElementById('all').innerHTML = html;
+
+	init();
+
+	// document.getElementById('all').innerHTML = html;
 
 </script>
 

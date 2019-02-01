@@ -1,123 +1,153 @@
 const DATA = {
     "files":[
         {
-            "name":"hinomaru",
+            "name":"Hinomaru",
+            "category":"Image",
             "directory":"hinomaru"
         },
         {
-            "name":"mask image",
+            "name":"Mask Image",
+            "category":"Image",
             "directory":"mask-image"
         },
         {
-            "name":"bloom image",
+            "name":"Bloom Image",
+            "category":"Image",
             "directory":"bloom-image"
         },
         {
-        	"name":"gray image",
+        	"name":"Gray Image",
+            "category":"Image",
         	"directory":"gray-image"
         },
         {
-            "name":"vaporwave image",
+            "name":"Vaporwave Image",
+            "category":"Image",
             "directory":"vaporwave-image"
         },
         {
-            "name":"noise image",
+            "name":"Noise Image",
+            "category":"Image",
             "directory":"noise-image"
         },
         {
-            "name":"delaunay image",
+            "name":"Delaunay Image",
+            "category":"Image",
             "directory":"delaunay-image"
         },
         {
-            "name":"shape image",
+            "name":"Shape Image",
+            "category":"Image",
             "directory":"shape-image"
         },
         {
-            "name":"misosoup",
+            "name":"Misosoup",
+            "category":"Image",
             "directory":"misosoup"
         },
         {
-            "name":"spot",
+            "name":"Spot",
+            "category":"Circle",
             "directory":"spot"
         },
         {
-            "name":"circle",
+            "name":"Circle",
+            "category":"Circle",
             "directory":"circle"
         },
         {
-            "name":"neon text",
+            "name":"Neon Text",
+            "category":"Text",
             "directory":"neon-text"
         },
         {
-            "name":"digital text",
+            "name":"Digital Text",
+            "category":"Text",
             "directory":"digital"
         },
         {
-            "name":"code",
+            "name":"Code",
+            "category":"Text",
             "directory":"code"
         },
         {
-            "name":"grow text",
+            "name":"Grow Text",
+            "category":"Text",
             "directory":"grow-digital-text"
         },
         {
-            "name":"dynamic text",
+            "name":"Dynamic Text",
+            "category":"Text",
             "directory":"dynamic-text"
         },
         {
-            "name":"particle text",
+            "name":"Particle Text",
+            "category":"Text",
             "directory":"text-particle"
         },
         {
-            "name":"wave pattern",
+            "name":"Wave Pattern",
+            "category":"Pattern",
             "directory":"wave-pattern"
         },
         {
-            "name":"rotate shape",
+            "name":"Rotate Shape",
+            "category":"Shape",
             "directory":"rotate-shape"
         },
         {
-            "name":"culture microorganism",
+            "name":"Culture Microorganism",
+            "category":"Circle",
             "directory":"culture-microorganism"
         },
         {
-            "name":"grid line circle",
+            "name":"Grid Line Circle",
+            "category":"Grid",
             "directory":"grid-line-circle"
         },
         {
-            "name":"rough squares",
+            "name":"Rough Squares",
+            "category":"Grid",
             "directory":"rough-squares"
         },
         {
-            "name":"flashlight",
+            "name":"Flashlight",
+            "category":"Grid",
             "directory":"flashlight"
         },
         {
-            "name":"pursuit bubbles",
+            "name":"Pursuit Bubbles",
+            "category":"Circle",
             "directory":"pursuit-bubbles"
         },
         {
-            "name":"shadow circle",
+            "name":"Shadow Circle",
+            "category":"Particle",
             "directory":"shadow-circle"
         },
         {
-            "name":"free particle",
+            "name":"Free Particle",
+            "category":"Particle",
             "directory":"free-particle"
         },
         {
-            "name":"convex hull",
+            "name":"Convex Hull",
+            "category":"Particle",
             "directory":"convex-hull"
         },
         {
-            "name":"grid particle line",
+            "name":"Grid Particle Line",
+            "category":"Particle",
             "directory":"grid-particle-line"
         },
         {
-            "name":"connect particle",
+            "name":"Connect Particle",
+            "category":"Particle",
             "directory":"connect-particle"
         },
         {
-            "name":"countdown",
+            "name":"Countdown",
+            "category":"Particle",
             "directory":"countdown"
         }
     ]

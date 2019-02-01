@@ -6,7 +6,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 	'use strict';
 
 	let _canvas,_context;
-	let _setting,_objects,_backImage,_effect,_counter;
+	let _setting,_objectManager,_backImage,_inputImageDom,_effect;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
@@ -42,7 +42,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	class Guide {
+	class ObjectGuide {
 
 		constructor(object) {
 
@@ -51,6 +51,70 @@ import { Filter } from '../../../common/files/js/filter.js';
 			let parentClass = this;
 			let element = document.createElement('div');
 			element.className = 'object-guide';
+
+			document.getElementById('all').appendChild(element);
+
+			this.id      = object.id;
+			this.element = element;
+			this.object  = object;
+
+			this.setCornerUI(this);
+			this.setRotateUI(this);
+			this.setDeleteUI();
+			this.element.addEventListener('mousedown',function(event) {
+				parentClass.onDown(event,parentClass);
+			},true);
+
+		}
+
+		onDown(event,parent) {
+
+			const point = new Point(event.clientX,event.clientY);
+
+			parent.addClass('active');
+			parent.addClass('grab');
+			parent.removeClass('grabCorner');
+			parent.removeClass('grabRotate');
+
+			parent.object.setGrabPosition(point);
+
+		}
+
+		onDownCorner(event,parent) {
+
+			parent.addClass('active');
+			parent.removeClass('grab');
+			parent.addClass('grabCorner');
+			parent.removeClass('grabRotate');
+
+			event.target.classList.add('active');
+
+		}
+
+		onDownRotate(event,parent) {
+
+			const point = new Point(event.clientX,event.clientY);
+
+			parent.addClass('active');
+			parent.removeClass('grab');
+			parent.removeClass('grabCorner');
+			parent.addClass('grabRotate');
+
+		}
+
+		set(x,y,width,height,scale,angle) {
+
+			this.element.style.top  = y + 'px';
+			this.element.style.left = x + 'px';
+
+			this.element.style.width  = width * scale + 'px';
+			this.element.style.height = height * scale + 'px';
+
+			this.element.style.transform = 'rotate(' + angle +'deg)';
+
+		}
+
+		setCornerUI(parentClass) {
 
 			const positionList = ['left-top','right-top','right-bottom','left-bottom'];
 			for (let i = 0; i < positionList.length; i++) {
@@ -61,66 +125,34 @@ import { Filter } from '../../../common/files/js/filter.js';
 				cornerElm.setAttribute('data-index',i);
 				this.corner.push(cornerElm);
 
-				element.appendChild(cornerElm);
+				this.element.appendChild(cornerElm);
 				cornerElm.addEventListener('mousedown',function(event) {
 					parentClass.onDownCorner(event,parentClass);
 				},true);
 
 			}
 
-			document.getElementById('all').appendChild(element);
+		}
 
-			this.id      = object.id;
-			this.element = element;
-			this.object  = object;
+		setRotateUI(parentClass) {
 
-			this.setDelete(element);
-			this.element.addEventListener('mousedown',function(event) {
-				parentClass.onDown(event,parentClass);
+			let element = document.createElement('div');
+			element.className = 'object-guide-ui rotate';
+			this.element.appendChild(element);
+			element.addEventListener('mousedown',function(event) {
+				parentClass.onDownRotate(event,parentClass);
 			},true);
 
 		}
 
-		onDown(event,parent) {
-
-			const point = new Point(event.clientX,event.clientY);
-			parent.addClass('active');
-			parent.addClass('grab');
-			parent.removeClass('grabCorner');
-
-			parent.object.grab.x = parent.object.x - point.x;
-			parent.object.grab.y = parent.object.y - point.y;
-
-		}
-
-		onDownCorner(event,parent) {
-
-			parent.addClass('active');
-			parent.removeClass('grab');
-			parent.addClass('grabCorner');
-
-			event.target.classList.add('active');
-
-		}
-
-		set(x,y,width,height,scale) {
-
-			this.element.style.top  = y + 'px';
-			this.element.style.left = x + 'px';
-
-			this.element.style.width  = width * scale + 'px';
-			this.element.style.height = height * scale + 'px';
-
-		}
-
-		setDelete(parent) {
+		setDeleteUI() {
 
 			let object  = this.object;
 			let element = document.createElement('div');
 			element.className = 'object-guide-ui delete';
-			parent.appendChild(element);
+			this.element.appendChild(element);
 			element.addEventListener('mousedown',function(event) {
-				object.delete();
+				_objectManager.delete(object.id);
 			},true);
 
 		}
@@ -175,26 +207,21 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	class Container {
+	class Object {
 
-		constructor(id,image) {
+		constructor(id,x,y,scale) {
 
 			this.id    = id;
-			this.image = image;
-			this.x     = 0;
-			this.y     = 0;
-			this.scale = 1;
+			this.x     = x;
+			this.y     = y;
+			this.scale = scale;
 
 			this.grab   = {};
 			this.grab.x = 0;
 			this.grab.y = 0;
 
-			this.corner        = {};
-			this.corner.radius = 5;
-			this.corner.points = this.getCornerPoints();
-			this.corner.defaultPoints = this.getCornerPoints();
-
-			this.guide = new Guide(this);
+			this.angle = 0;
+			this.guide = new ObjectGuide(this);
 
 		}
 
@@ -228,11 +255,32 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 				this.setScale(distance/originalDistance);
 
-				let diffX = this.image.width * beforeScale - this.image.width * this.scale;
-				let diffY = this.image.height * beforeScale - this.image.height * this.scale;
+				let diffX = this.width * beforeScale - this.width * this.scale;
+				let diffY = this.height * beforeScale - this.height * this.scale;
 				if (index == 3 || index == 0) this.x += diffX;
 				if (index == 0 || index == 1) this.y += diffY;
 
+				this.corner.points = this.getCornerPoints();
+
+			}
+
+			if (this.guide.hasClass('grabRotate')) {
+
+
+				let center = this.getCenterPoint();
+
+				let baX = point.x - center.x;
+				let baY = point.y - center.y;
+				let bc  = (center.y - 100) - center.y;
+
+				let babc   = baY * bc;
+				let ban    = (baX * baX) + (baY * baY);
+				let bcn    = bc * bc;
+				let radian = Math.acos(babc / (Math.sqrt(ban * bcn)));
+				let angle  = radian * (180 / Math.PI);
+				angle = center.x < point.x ? angle : 180 - angle + 180;
+
+				this.angle = Math.round(angle);
 				this.corner.points = this.getCornerPoints();
 
 			}
@@ -243,6 +291,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			this.guide.removeClass('grab');
 			this.guide.removeClass('grabCorner');
+			this.guide.removeClass('grabRotate');
 
 			this.guide.removeCornerClass('active');
 
@@ -256,6 +305,13 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		setGrabPosition(point) {
+
+			this.grab.x = this.x - point.x;
+			this.grab.y = this.y - point.y;
+
+		}
+
 		setScale(scale) {
 
 			this.scale = parseFloat(scale.toFixed(5));
@@ -265,7 +321,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		update() {
 
-			this.guide.set(this.x,this.y,this.image.width,this.image.height,this.scale);
+			this.guide.set(this.x,this.y,this.width,this.height,this.scale,this.angle);
 
 			return this;
 
@@ -273,22 +329,15 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		delete() {
 
-			deleteObject(this.id);
 			this.guide.delete();
 
 		}
 
-		getCornerPoints() {
+		getCenterPoint() {
 
-			const imageW = this.image.width * this.scale;
-			const imageH = this.image.height * this.scale;
-
-			return [
-				new Point(this.x,this.y),
-				new Point(this.x + imageW, this.y),
-				new Point(this.x + imageW, this.y + imageH),
-				new Point(this.x, this.y + imageH)
-			];
+			const width  = this.width * this.scale;
+			const height = this.height * this.scale;
+			return new Point(this.x + width * .5, this.y + height * .5);
 
 		}
 
@@ -303,9 +352,218 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		getCornerPoints() {
+
+			const width  = this.width * this.scale;
+			const height = this.height * this.scale;
+
+			return [
+				new Point(this.x,this.y),
+				new Point(this.x + width, this.y),
+				new Point(this.x + width, this.y + height),
+				new Point(this.x, this.y + height)
+			];
+
+		}
+
+		getDefaultCornerPoints() {
+
+			const width = this.width;
+			const height = this.height;
+
+			return [
+				new Point(0,0),
+				new Point(width,0),
+				new Point(width,height),
+				new Point(0,height)
+			];
+
+		}
+
+	}
+
+	class ObjectImage extends Object {
+
+		constructor(id,image,width,height) {
+
+			let ratio = width <= image.width ? width/image.width : 1;
+			super(id,0,0,ratio);
+			this.image = image;
+
+			this.width  = image.width;
+			this.height = image.height;
+
+			this.corner        = {};
+			this.corner.radius = 5;
+			this.corner.points = this.getCornerPoints();
+			this.corner.defaultPoints = this.getDefaultCornerPoints();
+
+		}
+
 		draw(context) {
 
-			context.drawImage(this.image,this.x,this.y,this.image.width * this.scale,this.image.height * this.scale);
+			const width  = this.width * this.scale;
+			const height = this.height * this.scale;
+
+			context.save();
+
+			context.translate(this.x + width * .5,this.y + height * .5);
+			context.rotate(this.angle * Math.PI / 180);
+			context.translate(-this.x - width * .5,-this.y - height * .5);
+			context.drawImage(this.image,this.x,this.y,width,height);
+
+			context.restore();
+
+		}
+
+	}
+
+	class ObjectText extends Object {
+
+		constructor(id,context,x,y,text,color,fontsize) {
+
+			super(id,x,y,1);
+
+			let font = fontsize + 'px sans-serif';
+			context.font = font;
+			context.textBaseline = 'top';
+
+			this.fontsize = fontsize;
+			this.text  = text;
+			this.color = color;
+
+			this.width  = context.measureText(text).width;
+			this.height = this.getOffsetHeight(text,font);
+
+			this.corner        = {};
+			this.corner.radius = 5;
+			this.corner.points = this.getCornerPoints();
+			this.corner.defaultPoints = this.getDefaultCornerPoints();
+
+		}
+
+		update() {
+
+			this.guide.set(this.x,this.y,this.width,this.height,this.scale,this.angle);
+			return this;
+
+		}
+
+		draw(context) {
+
+			context.font = this.fontsize * this.scale + 'px sans-serif';
+
+			const width  = this.width * this.scale;
+			const height = this.height * this.scale;
+
+			context.save();
+
+			context.translate(this.x + width * .5,this.y + height * .5);
+			context.rotate(this.angle * Math.PI / 180);
+			context.translate(-this.x - width * .5,-this.y - height * .5);
+
+			context.fillStyle = this.color;
+			context.fillText(this.text,this.x,this.y);
+
+			context.restore();
+
+		}
+
+		getOffsetHeight(text,font) {
+
+			let span = document.createElement('span');
+			span.appendChild(document.createTextNode(text));
+			let parent = document.createElement('p');
+			parent.id = 'textMetrics';
+			parent.appendChild(span);
+			document.body.insertBefore(parent, document.body.firstChild);
+
+			span.style.cssText = 'font: ' + font + '; white-space: nowrap; display: inline;';
+			let height = span.offsetHeight;
+			parent.parentNode.removeChild(parent);
+			return height;
+
+		}
+
+	}
+
+	class ObjectManager {
+
+		constructor() {
+
+			this.list     = [];
+			this.idConter = 0;
+
+		}
+
+		addImage(image,width,height) {
+
+			this.idConter++;
+			this.list.push(new ObjectImage(this.idConter,image,width,height));
+
+		}
+
+		addText(context,text,color,fontsize) {
+
+			this.idConter++;
+			this.list.push(new ObjectText(this.idConter,context,0,0,text,color,fontsize));
+
+		}
+
+		delete(id) {
+
+			for (let i = 0; i < this.list.length; i++) {
+
+				let object = this.list[i];
+				if (object.id == id) {
+
+					object.delete();
+					this.list.splice(i,1);
+
+				}
+
+			}
+
+		}
+
+		onDown(point) {
+
+			for (let i = 0; i < this.list.length; i++) {
+
+				const object = this.list[i];
+				object.onDown(point);
+
+			}
+
+		}
+
+		onMove(point) {
+
+			for (let i = 0; i < this.list.length; i++) {
+
+				this.list[i].onMove(point);
+
+			}
+
+		}
+
+		onUp(event) {
+
+			for (let i = 0; i < this.list.length; i++) {
+
+				this.list[i].onUp();
+
+			}
+
+		}
+
+		render(context) {
+
+			for (let i = 0; i < this.list.length; i++) {
+
+				this.list[i].update().draw(context);
+
+			}
 
 		}
 
@@ -365,51 +623,90 @@ import { Filter } from '../../../common/files/js/filter.js';
 		_setting = new Setting({
 			image     :{ value:'download',elm:'button',onclick:downloadImage },
 			stamp     :{ value:'upload',elm:'button',onclick:uploadStamp },
-			background:{ value:'upload',elm:'button',onclick:uploadBack }
+			background:{ value:'upload',elm:'button',onclick:uploadBack },
+			text      :{ value:'Hello world','data-reload':false },
+			add_text  :{ value:'add',elm:'button',onclick:addText }
 		});
 
-		_counter = 0;
 		_canvas  = document.getElementById('canvas');
 		_context = _canvas.getContext('2d');
 
 		_setting.setCallback(setup);
+		setInputImage();
 
 		_effect = new Effect();
+		_objectManager = new ObjectManager();
 
-		_backImage = new Image();
-		_backImage.onload = function() {
+		function onLoadedAll() {
 
-			_objects = [];
+			window.addEventListener('resize',onResize,false);
+			window.addEventListener('mousedown',onDown,true);
+			window.addEventListener('mousemove',onMove,false);
+			window.addEventListener('mouseup',onUp,false);
+
+			window.dispatchEvent(new Event('resize'));
+
+			setup();
+
+			window.requestAnimationFrame(render);
+
+		}
+
+		loadImage(function(backImage) {
+
+			_backImage = backImage;
+
 			const imageList = ['age.png','asari.png','nameko.png','toufu.png'];
+			let counter = 0;
 
 			for (let i = 0; i < imageList.length; i++) {
 
-				let image = new Image();
-				image.onload = function() {
+				const src = './files/img/' + imageList[i];
 
-					_objects.push(new Container(i,image));
+				loadImage(function(image) {
 
-					_counter++;
-					if (imageList.length <= _counter) {
+					_objectManager.addImage(image,_canvas.width,_canvas.height);
 
-						setup();
+					counter++;
+					if (imageList.length <= counter) onLoadedAll();
 
-						window.addEventListener('resize',onResize,false);
-						window.addEventListener('mousedown',onDown,true);
-						window.addEventListener('mousemove',onMove,false);
-						window.addEventListener('mouseup',onUp,false);
-
-						window.requestAnimationFrame(render);
-
-					}
-
-				}
-				image.src = './files/img/' + imageList[i];
+				},src);
 
 			}
 
+		},'./files/img/table.png');
+
+	}
+
+	function setInputImage() {
+
+		_inputImageDom        = document.createElement('input');
+		_inputImageDom.type   = 'file';
+		_inputImageDom.accept = 'image/*';
+		_inputImageDom.style.cssText = 'display: none; z-index: -1;';
+		document.getElementById('all').append(_inputImageDom);
+
+		function onFileLoad() {
+
+			let image = new Image();
+			image.onload = function() {
+
+				_inputImageDom.callback(image);
+				_inputImageDom.callback = null;
+
+			};
+			image.src = this.result;
+
 		}
-		_backImage.src = './files/img/table.png';
+
+		_inputImageDom.addEventListener('change',function(event) {
+
+			let files  = event.target.files;
+			let reader = new FileReader();
+			reader.addEventListener('load', onFileLoad, false);
+			reader.readAsDataURL(files[0]);
+
+		},false);
 
 	}
 
@@ -424,29 +721,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function uploadImage(callback) {
 
-		function fileLoad() {
-
-			let image = new Image();
-			image.onload = function() {
-
-				callback(image);
-
-			}
-			image.src = this.result;
-
-		}
-
-		let element  = document.createElement('input');
-		element.type = 'file';
-		element.addEventListener('change',function(event) {
-
-			let files  = event.target.files;
-			let reader = new FileReader();
-			reader.addEventListener('load', fileLoad, false);
-			reader.readAsDataURL(files[0]);
-
-		},false);
-		element.click();
+		_inputImageDom.callback = callback;
+		_inputImageDom.click();
 
 	}
 
@@ -464,33 +740,23 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		uploadImage(function(image) {
 
-			_counter++;
-			_objects.push(new Container(_counter,image));
+			_objectManager.addImage(image,_canvas.width,_canvas.height)
 
 		});
 
 	}
 
-	function deleteObject(id) {
+	function addText() {
 
-		for (let i = 0; i < _objects.length; i++) {
-
-			if (_objects[i].id == id) _objects.splice(i,1);
-
-		}
-
-	}
-
-	function setCanvasSize() {
-
-		_canvas.width  = window.innerWidth;
-		_canvas.height = window.innerHeight;
+		let text = _setting.get('text');
+		_objectManager.addText(_context,text,'#000',30);
 
 	}
 
 	function onResize() {
 
-		setCanvasSize();
+		_canvas.width  = window.innerWidth;
+		_canvas.height = window.innerHeight;
 
 	}
 
@@ -498,12 +764,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		const point = new Point(event.clientX,event.clientY);
 
-		for (let i = 0; i < _objects.length; i++) {
-
-			const object = _objects[i];
-			object.onDown(point);
-
-		}
+		_objectManager.onDown(point);
 
 	}
 
@@ -511,41 +772,35 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		const point = new Point(event.clientX,event.clientY);
 
-		for (let i = 0; i < _objects.length; i++) {
-
-			_objects[i].onMove(point);
-
-		}
+		_objectManager.onMove(point);
 
 	}
 
 	function onUp(event) {
 
-		for (let i = 0; i < _objects.length; i++) {
-
-			_objects[i].onUp();
-
-		}
+		_objectManager.onUp();
 
 	}
 
 	function setup() {
 
-		setCanvasSize();
-
 		const width  = _canvas.width;
 		const height = _canvas.height;
-		const area   = width / _objects.length;
+		const objectList = _objectManager.list;
+		const area       = width / objectList.length;
 
-		for (let i = 0; i < _objects.length; i++) {
+		for (let i = 0; i < objectList.length; i++) {
 
-			let object = _objects[i];
-			let diffX  = object.image.width < area ? area - object.image.width : 0;
+			let object = objectList[i];
+			let diffX  = object.width < area ? area - object.width : 0;
 			let x = i * area + diffX * .5;
-			let y = height * .8 - object.image.height;
+			let y = height * .8 - object.height;
 			object.setPosition(x,y);
 
 		}
+
+		let text = _setting.get('text');
+		_objectManager.addText(_context,text,'#000',30);
 
 	}
 
@@ -560,11 +815,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 		let imageH = _backImage.height * ratio;
 		_context.drawImage(_backImage,0,height - imageH,width,imageH);
 
-		for (let i = 0; i < _objects.length; i++) {
-
-			_objects[i].update().draw(_context);
-
-		}
+		_objectManager.render(_context);
 
 		// _effect.counter(_context,width,height);
 
@@ -575,6 +826,18 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function getRangeNumber(min, max) {
 
 		return Math.random() * (max - min) + min;
+
+	}
+
+	function loadImage(onLoad,src) {
+
+		let image = new Image();
+		image.onload = function(event) {
+
+			onLoad(image);
+
+		}
+		image.src = src;
 
 	}
 
