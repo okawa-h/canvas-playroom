@@ -2,47 +2,57 @@ const DATA = {
     "files":[
         {
             "name":"Hinomaru",
-            "category":"Image",
+            "category":"Image Effect",
             "directory":"hinomaru"
         },
         {
-            "name":"Mask Image",
-            "category":"Image",
+            "name":"Mask",
+            "category":"Image Effect",
             "directory":"mask-image"
         },
         {
-            "name":"Bloom Image",
-            "category":"Image",
+            "name":"Bloom",
+            "category":"Image Effect",
             "directory":"bloom-image"
         },
         {
-        	"name":"Gray Image",
-            "category":"Image",
+        	"name":"Gray",
+            "category":"Image Effect",
         	"directory":"gray-image"
         },
         {
-            "name":"Vaporwave Image",
-            "category":"Image",
+        	"name":"Puzzle",
+            "category":"Image Effect",
+        	"directory":"puzzle-image"
+        },
+        {
+            "name":"Mirror",
+            "category":"Image Effect",
+            "directory":"mirror-image"
+        },
+        {
+            "name":"Vaporwave",
+            "category":"Image Effect",
             "directory":"vaporwave-image"
         },
         {
-            "name":"Noise Image",
-            "category":"Image",
+            "name":"Noise",
+            "category":"Image Effect",
             "directory":"noise-image"
         },
         {
-            "name":"Delaunay Image",
-            "category":"Image",
+            "name":"Delaunay",
+            "category":"Image Effect",
             "directory":"delaunay-image"
         },
         {
-            "name":"Shape Image",
-            "category":"Image",
+            "name":"Mosaic Shape",
+            "category":"Image Effect",
             "directory":"shape-image"
         },
         {
             "name":"Misosoup",
-            "category":"Image",
+            "category":"Image Effect",
             "directory":"misosoup"
         },
         {
