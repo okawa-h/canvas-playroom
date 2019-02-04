@@ -241,47 +241,42 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 				this.x = point.x + this.grab.x;
 				this.y = point.y + this.grab.y;
-				this.corner.points = this.getCornerPoints();
 
 			}
 
 			if (this.guide.hasClass('grabCorner')) {
 
-				const index            = this.guide.getActiveCornerIndex();
-				const diagonalIndex    = this.getDiagonalIndex(index);
-				const originalDistance = this.corner.defaultPoints[diagonalIndex].getDistance(this.corner.defaultPoints[index]);
-				const distance         = this.corner.points[diagonalIndex].getDistance(point);
+				let originalCenter = new Point(this.width * .5,this.height * .5);
+				let center = this.getCenterPoint();
+				let index  = this.guide.getActiveCornerIndex();
+
+				const originalDiagonal = originalCenter.getDistance(this.originalCornerPoints[index]);
+				const diagonal         = center.getDistance(point);
 				const beforeScale      = this.scale;
 
-				this.setScale(distance/originalDistance);
+				this.setScale(diagonal/originalDiagonal);
 
-				let diffX = this.width * beforeScale - this.width * this.scale;
-				let diffY = this.height * beforeScale - this.height * this.scale;
-				if (index == 3 || index == 0) this.x += diffX;
-				if (index == 0 || index == 1) this.y += diffY;
-
-				this.corner.points = this.getCornerPoints();
+				this.x += (this.width * beforeScale - this.width * this.scale) * .5;
+				this.y += (this.height * beforeScale - this.height * this.scale) * .5;
 
 			}
 
 			if (this.guide.hasClass('grabRotate')) {
 
-
 				let center = this.getCenterPoint();
 
-				let baX = point.x - center.x;
-				let baY = point.y - center.y;
+				let acX = point.x - center.x;
+				let acY = point.y - center.y;
 				let bc  = (center.y - 100) - center.y;
 
-				let babc   = baY * bc;
-				let ban    = (baX * baX) + (baY * baY);
+				let babc   = acY * bc;
+				let ban    = (acX * acX) + (acY * acY);
 				let bcn    = bc * bc;
 				let radian = Math.acos(babc / (Math.sqrt(ban * bcn)));
 				let angle  = radian * (180 / Math.PI);
 				angle = center.x < point.x ? angle : 180 - angle + 180;
 
 				this.angle = Math.round(angle);
-				this.corner.points = this.getCornerPoints();
 
 			}
 
@@ -297,11 +292,17 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		move(x,y) {
+
+			this.x += x;
+			this.y += y;
+
+		}
+
 		setPosition(x,y) {
 
 			this.x = x;
 			this.y = y;
-			this.corner.points = this.getCornerPoints();
 
 		}
 
@@ -315,7 +316,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 		setScale(scale) {
 
 			this.scale = parseFloat(scale.toFixed(5));
-			if (scale <= .1) this.scale = .1;
 
 		}
 
@@ -341,32 +341,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		getDiagonalIndex(index) {
-
-			let reIndex = 0;
-			if (index == 0) reIndex = 2;
-			if (index == 1) reIndex = 3;
-			if (index == 2) reIndex = 0;
-			if (index == 3) reIndex = 1;
-			return reIndex;
-
-		}
-
-		getCornerPoints() {
-
-			const width  = this.width * this.scale;
-			const height = this.height * this.scale;
-
-			return [
-				new Point(this.x,this.y),
-				new Point(this.x + width, this.y),
-				new Point(this.x + width, this.y + height),
-				new Point(this.x, this.y + height)
-			];
-
-		}
-
-		getDefaultCornerPoints() {
+		getOriginalCornerPoints() {
 
 			const width = this.width;
 			const height = this.height;
@@ -380,23 +355,29 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		isActive() {
+
+			return this.guide.hasClass('active');
+
+		}
+
 	}
 
 	class ObjectImage extends Object {
 
 		constructor(id,image,width,height) {
 
-			let ratio = width <= image.width ? width/image.width : 1;
+			let ratioW = width <= image.width ? width/image.width : 1;
+			let ratioH = height <= image.height ? height/image.height : 1;
+			let ratio  = ratioW < ratioH ? ratioW : ratioH;
+
 			super(id,0,0,ratio);
 			this.image = image;
 
 			this.width  = image.width;
 			this.height = image.height;
 
-			this.corner        = {};
-			this.corner.radius = 5;
-			this.corner.points = this.getCornerPoints();
-			this.corner.defaultPoints = this.getDefaultCornerPoints();
+			this.originalCornerPoints = this.getOriginalCornerPoints();
 
 		}
 
@@ -435,23 +416,14 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.width  = context.measureText(text).width;
 			this.height = this.getOffsetHeight(text,font);
 
-			this.corner        = {};
-			this.corner.radius = 5;
-			this.corner.points = this.getCornerPoints();
-			this.corner.defaultPoints = this.getDefaultCornerPoints();
-
-		}
-
-		update() {
-
-			this.guide.set(this.x,this.y,this.width,this.height,this.scale,this.angle);
-			return this;
+			this.originalCornerPoints = this.getOriginalCornerPoints();
 
 		}
 
 		draw(context) {
 
 			context.font = this.fontsize * this.scale + 'px sans-serif';
+			context.textBaseline = 'top';
 
 			const width  = this.width * this.scale;
 			const height = this.height * this.scale;
@@ -478,7 +450,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 			parent.appendChild(span);
 			document.body.insertBefore(parent, document.body.firstChild);
 
-			span.style.cssText = 'font: ' + font + '; white-space: nowrap; display: inline;';
+			span.style.cssText = 'display: inline; font: ' + font + '; white-space: nowrap;';
 			let height = span.offsetHeight;
 			parent.parentNode.removeChild(parent);
 			return height;
@@ -552,6 +524,37 @@ import { Filter } from '../../../common/files/js/filter.js';
 			for (let i = 0; i < this.list.length; i++) {
 
 				this.list[i].onUp();
+
+			}
+
+		}
+
+		onKeyDown(event) {
+
+			const keyCode = event.keyCode;
+
+			for (let i = 0; i < this.list.length; i++) {
+
+				let object = this.list[i];
+				let value  = event.shiftKey ? 10 : 1;
+
+				if (object.isActive()) {
+
+					switch(keyCode) {
+						case 37:
+							object.move(-value,0);
+							break;
+						case 38:
+							object.move(0,-value);
+							break;
+						case 39:
+							object.move(value,0);
+							break;
+						case 40:
+							object.move(0,value);
+							break;
+					}
+				}
 
 			}
 
@@ -643,6 +646,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 			window.addEventListener('mousedown',onDown,true);
 			window.addEventListener('mousemove',onMove,false);
 			window.addEventListener('mouseup',onUp,false);
+			window.addEventListener('keydown',onKeyDown,false);
 
 			window.dispatchEvent(new Event('resize'));
 
@@ -652,7 +656,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		loadImage(function(backImage) {
+		imageLoader(function(backImage) {
 
 			_backImage = backImage;
 
@@ -663,7 +667,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 				const src = './files/img/' + imageList[i];
 
-				loadImage(function(image) {
+				imageLoader(function(image) {
 
 					_objectManager.addImage(image,_canvas.width,_canvas.height);
 
@@ -701,10 +705,37 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_inputImageDom.addEventListener('change',function(event) {
 
-			let files  = event.target.files;
-			let reader = new FileReader();
-			reader.addEventListener('load', onFileLoad, false);
-			reader.readAsDataURL(files[0]);
+			let file = event.target.files[0];
+
+			if (0 <= file.type.indexOf('png')) {
+
+				let reader = new FileReader();
+				reader.addEventListener('load', onFileLoad, false);
+				reader.readAsDataURL(file);
+
+			} else {
+
+				loadImage.parseMetaData(file,function(data) {
+
+					let options = { canvas:true };
+					if (data.exif) options.orientation = data.exif.get('Orientation');
+
+					loadImage(file,function(canvas) {
+
+						let image = new Image();
+						image.onload = function() {
+
+							_inputImageDom.callback(image);
+							_inputImageDom.callback = null;
+
+						}
+						image.src = canvas.toDataURL(file.type);
+
+					}, options);
+
+				});
+
+			}
 
 		},false);
 
@@ -749,7 +780,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function addText() {
 
 		let text = _setting.get('text');
-		_objectManager.addText(_context,text,'#000',30);
+		_objectManager.addText(_context,text,'#000',_canvas.width * .08);
 
 	}
 
@@ -771,7 +802,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function onMove(event) {
 
 		const point = new Point(event.clientX,event.clientY);
-
 		_objectManager.onMove(point);
 
 	}
@@ -779,6 +809,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function onUp(event) {
 
 		_objectManager.onUp();
+
+	}
+
+	function onKeyDown(event) {
+
+		_objectManager.onKeyDown(event);
 
 	}
 
@@ -799,8 +835,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		let text = _setting.get('text');
-		_objectManager.addText(_context,text,'#000',30);
+		addText();
 
 	}
 
@@ -829,7 +864,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	function loadImage(onLoad,src) {
+	function imageLoader(onLoad,src) {
 
 		let image = new Image();
 		image.onload = function(event) {
@@ -840,6 +875,5 @@ import { Filter } from '../../../common/files/js/filter.js';
 		image.src = src;
 
 	}
-
 
 })(window);
