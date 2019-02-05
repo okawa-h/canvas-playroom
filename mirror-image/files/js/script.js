@@ -14,25 +14,49 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		constructor(canvas,context) {
 
+			this.canvas  = canvas;
+			this.context = context;
 			this.width  = Math.ceil(canvas.width * .5);
 			this.height = canvas.height;
-			this.x      = this.width;
+			this.x      = 0;
 			this.y      = 0;
 
-			this.image = context.getImageData(0,0,this.width,this.height);
+			// this.image = context.getImageData(0,0,this.width,this.height);
+			this.image = context.getImageData(0,0,this.canvas.width,this.canvas.height);
 
 		}
 
 		draw(context) {
 
+			context.fillStyle="blue";
+			context.fillRect(60,10,50,50);
+
 			// const glitch = 1;
 			// let x = this.x + getRangeNumber(-glitch,glitch);
 			// let y = this.y + getRangeNumber(-glitch,glitch);
-
 			// context.save();
-			context.transform(1, 0, 0, -1, 0, 0);
-			context.putImageData(this.image,this.x,this.y);
+			// // context.transform(1, 0, 0, -1, 0, 0);
+			// context.scale(0.8,1.5);
+			// // this.context.drawImage(this.canvas, 100, 0);
+			// context.putImageData(this.image,0,0);
+			// context.scale(1,1);
 			// context.restore();
+
+			// let image = new Image();
+			// image.onload = function(){
+
+				// context.clearRect(0,0,canvas.width,canvas.height);
+				context.save();
+				context.scale(-2,2);
+				context.drawImage(this.image,0,0);
+				context.restore();
+
+				context.fillStyle="red";
+				context.fillRect(10,10,50,50);
+
+			// }
+
+			// image.src = this.canvas.toDataURL();
 
 		}
 
@@ -87,9 +111,10 @@ import { Filter } from '../../../common/files/js/filter.js';
 		loadImage(function(image) {
 
 			_image  = image;
-			setup();
 			window.addEventListener('resize',onResize,false);
 			window.dispatchEvent(new Event('resize'));
+
+			setup();
 
 			window.requestAnimationFrame(render);
 
@@ -136,8 +161,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_context.drawImage(_image,x,y);
 
-		_effect.update();
-		if (_effect.isDie()) _effect.setUp(_canvas,_context);
+		// _effect.update();
+		// if (_effect.isDie()) _effect.setUp(_canvas,_context);
 		_effect.draw(_context);
 
 		window.requestAnimationFrame(render);

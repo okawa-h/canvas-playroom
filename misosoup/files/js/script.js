@@ -225,6 +225,13 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		setup() {
+
+			this.guide = new ObjectGuide(this);
+			this.update();
+
+		}
+
 		onDown(point) {
 
 			this.guide.removeClass('active');
@@ -322,7 +329,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 		update() {
 
 			this.guide.set(this.x,this.y,this.width,this.height,this.scale,this.angle);
-
 			return this;
 
 		}
@@ -395,6 +401,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			context.restore();
 
+
+			if (!this.guide.hasClass('active')) return;
+			let strong = getRangeNumber(1,5);
+			_effect.glitch(context,this.x,this.y,width,height,1,strong);
+
 		}
 
 	}
@@ -439,6 +450,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			context.restore();
 
+
+			if (!this.guide.hasClass('active')) return;
+			let strong = getRangeNumber(1,5);
+			_effect.glitch(context,this.x,this.y,width,height,1,strong);
+
 		}
 
 		getOffsetHeight(text,font) {
@@ -465,10 +481,13 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			this.list     = [];
 			this.idConter = 0;
+			this.history  = [];
 
 		}
 
 		addImage(image,width,height) {
+
+			this.addHistory();
 
 			this.idConter++;
 			this.list.push(new ObjectImage(this.idConter,image,width,height));
@@ -477,8 +496,17 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		addText(context,text,color,fontsize) {
 
+			this.addHistory();
+
 			this.idConter++;
 			this.list.push(new ObjectText(this.idConter,context,0,0,text,color,fontsize));
+
+		}
+
+		addHistory() {
+
+			if (10 < this.history.length) this.history.pop();
+			this.history.push(this.list.concat());
 
 		}
 
@@ -489,6 +517,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 				let object = this.list[i];
 				if (object.id == id) {
 
+					this.addHistory();
 					object.delete();
 					this.list.splice(i,1);
 
@@ -500,9 +529,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		onDown(point) {
 
-			for (let i = 0; i < this.list.length; i++) {
+			for (let object of this.list) {
 
-				const object = this.list[i];
 				object.onDown(point);
 
 			}
@@ -511,9 +539,9 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		onMove(point) {
 
-			for (let i = 0; i < this.list.length; i++) {
+			for (let object of this.list) {
 
-				this.list[i].onMove(point);
+				object.onMove(point);
 
 			}
 
@@ -521,11 +549,33 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		onUp(event) {
 
-			for (let i = 0; i < this.list.length; i++) {
+			for (let object of this.list) {
 
-				this.list[i].onUp();
+				object.onUp();
 
 			}
+
+		}
+
+		onPrevious() {
+
+			if (this.history.length <= 0) return;
+
+			for (let object of this.list) {
+
+				object.delete();
+
+			}
+
+			let preList = this.history[this.history.length - 1].concat();
+			this.list   = preList;
+
+			for (let object of preList) {
+
+				object.setup();
+
+			}
+			this.history.pop();
 
 		}
 
@@ -562,9 +612,9 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		render(context) {
 
-			for (let i = 0; i < this.list.length; i++) {
+			for (let object of this.list) {
 
-				this.list[i].update().draw(context);
+				object.update().draw(context);
 
 			}
 
@@ -600,6 +650,9 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		counter(context,width,height) {
 
+			// this.jagged(context,width,height,getRangeNumber(0,5),getRangeNumber(1,5));
+			// this.glitchScreen(context,width,height,5);
+
 			this.life--;
 
 			this.filter.glitchSlip(context,width,height,20);
@@ -619,6 +672,49 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		jagged(context,width,height,strongX,strongY) {
+
+			let x = -strongX;
+
+			for (let y = 0; y < height; y += strongY) {
+
+				let image = context.getImageData(0,y,width,strongY);
+				context.putImageData(image,x,y);
+
+				x++;
+				if (strongX < x) x = -strongX;
+
+			}
+
+		}
+
+		glitchScreen(context,width,height,strong) {
+
+			let glitchHeight = 1;
+
+			for (let y = 0; y < height; y += glitchHeight) {
+
+				let image = context.getImageData(0,y,width,glitchHeight);
+				context.putImageData(image,getRangeNumber(-strong,strong),y);
+
+			}
+
+		}
+
+		glitch(context,startX,startY,width,height,lineHeight,glitchStrong) {
+
+			const maxHeight = startY + height;
+
+			for (let y = startY; y < maxHeight; y += lineHeight) {
+
+				let image  = context.getImageData(startX,y,width,lineHeight);
+				let strong = Math.round(Math.random() * (glitchStrong - -glitchStrong) - glitchStrong);
+				context.putImageData(image,startX + strong,y);
+
+			}
+
+		}
+
 	}
 
 	function initialize() {
@@ -628,7 +724,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 			stamp     :{ value:'upload',elm:'button',onclick:uploadStamp },
 			background:{ value:'upload',elm:'button',onclick:uploadBack },
 			text      :{ value:'Hello world','data-reload':false },
-			add_text  :{ value:'add',elm:'button',onclick:addText }
+			add_text  :{ value:'add',elm:'button',onclick:addText },
+			previous  :{ value:'previous',elm:'button',onclick:onPrevious }
 		});
 
 		_canvas  = document.getElementById('canvas');
@@ -809,6 +906,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function onUp(event) {
 
 		_objectManager.onUp();
+
+	}
+
+	function onPrevious(event) {
+
+		_objectManager.onPrevious();
 
 	}
 
