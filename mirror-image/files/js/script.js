@@ -1,4 +1,3 @@
-import { Setting } from '../../../common/files/js/setting.js';
 import { Filter } from '../../../common/files/js/filter.js';
 
 (function(window) {
@@ -6,57 +5,52 @@ import { Filter } from '../../../common/files/js/filter.js';
 	'use strict';
 
 	let _canvas,_context;
-	let _setting,_image,_effect;
+	let _image,_effect;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
 	class Mirror {
 
-		constructor(canvas,context) {
+		constructor(canvas) {
 
 			this.canvas  = canvas;
-			this.context = context;
 			this.width  = Math.ceil(canvas.width * .5);
 			this.height = canvas.height;
-			this.x      = 0;
+			this.x      = this.width;
 			this.y      = 0;
-
-			// this.image = context.getImageData(0,0,this.width,this.height);
-			this.image = context.getImageData(0,0,this.canvas.width,this.canvas.height);
 
 		}
 
 		draw(context) {
 
-			context.fillStyle="blue";
-			context.fillRect(60,10,50,50);
+			let original = context.getImageData(this.x,this.y,this.width,this.height).data;
+			let flip     = new ImageData(this.width,this.height);
+			let Npel     = original.length * .25;
 
-			// const glitch = 1;
-			// let x = this.x + getRangeNumber(-glitch,glitch);
-			// let y = this.y + getRangeNumber(-glitch,glitch);
-			// context.save();
-			// // context.transform(1, 0, 0, -1, 0, 0);
-			// context.scale(0.8,1.5);
-			// // this.context.drawImage(this.canvas, 100, 0);
-			// context.putImageData(this.image,0,0);
-			// context.scale(1,1);
-			// context.restore();
+			for (let kPel = 0; kPel < Npel; kPel++) {
 
-			// let image = new Image();
-			// image.onload = function(){
+				let kFlip      = this.flip_index(kPel,this.width);
+				let offset     = 4 * kPel;
+				let offsetFlip = 4 * kFlip;
 
-				// context.clearRect(0,0,canvas.width,canvas.height);
-				context.save();
-				context.scale(-2,2);
-				context.drawImage(this.image,0,0);
-				context.restore();
+				flip.data[offsetFlip + 0] = original[offset + 0];
+				flip.data[offsetFlip + 1] = original[offset + 1];
+				flip.data[offsetFlip + 2] = original[offset + 2];
+				flip.data[offsetFlip + 3] = original[offset + 3];
 
-				context.fillStyle="red";
-				context.fillRect(10,10,50,50);
+			}
 
-			// }
+			context.putImageData(flip,0,0) ;
 
-			// image.src = this.canvas.toDataURL();
+		}
+
+		flip_index(kPel,width) {
+
+			let i     = Math.floor(kPel/width);
+			let j     = kPel % width;
+			let jFlip = width - j - 1;
+			let kFlip = i * width + jFlip;
+			return kFlip ;
 
 		}
 
@@ -64,9 +58,9 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	class Effect {
 
-		constructor(canvas,context) {
+		constructor(canvas) {
 
-			this.film = new Mirror(canvas,context);
+			this.film = new Mirror(canvas);
 			this.life = 10;
 
 		}
@@ -100,11 +94,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function initialize() {
 
-		_setting = new Setting({
-			max_row   :{ value:10,'data-reload':false },
-			max_column:{ value:10,'data-reload':false },
-		});
-
 		_canvas  = document.getElementById('canvas');
 		_context = _canvas.getContext('2d');
 
@@ -136,19 +125,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 		let x      = (width - _image.width) * .5;
 		let y      = (height - _image.height) * .5;
 
-		_context.fillStyle = '#fff';
-		_context.fillRect(0,0,width,height);;
-
-		_context.drawImage(_image,x,y);
-
-		_effect = new Effect(_canvas,_context);
+		_effect = new Effect(_canvas);
 
 	}
 
 	function render(timestamp) {
 
-		let maxRow    = _setting.get('max_row');
-		let maxColumn = _setting.get('max_column');
 		let width  = _canvas.width;
 		let height = _canvas.height;
 		let x      = (width - _image.width) * .5;
@@ -161,8 +143,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_context.drawImage(_image,x,y);
 
-		// _effect.update();
-		// if (_effect.isDie()) _effect.setUp(_canvas,_context);
 		_effect.draw(_context);
 
 		window.requestAnimationFrame(render);
