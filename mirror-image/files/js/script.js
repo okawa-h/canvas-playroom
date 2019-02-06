@@ -9,27 +9,35 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
-	class Mirror {
+	class Effect {
 
-		constructor(canvas) {
+		constructor() {
 
-			this.canvas  = canvas;
-			this.width  = Math.ceil(canvas.width * .5);
-			this.height = canvas.height;
-			this.x      = this.width;
-			this.y      = 0;
+			this.life = 10;
 
 		}
 
-		draw(context) {
+		setUp(context) {
 
-			let original = context.getImageData(this.x,this.y,this.width,this.height).data;
-			let flip     = new ImageData(this.width,this.height);
+			this.life = getRangeNumber(10,100);
+
+		}
+
+		update() {
+
+			this.life--;
+
+		}
+
+		draw(context,x,y,width,height) {
+
+			let original = context.getImageData(x,y,width,height).data;
+			let flip     = new ImageData(width,height);
 			let Npel     = original.length * .25;
 
 			for (let kPel = 0; kPel < Npel; kPel++) {
 
-				let kFlip      = this.flip_index(kPel,this.width);
+				let kFlip      = this.getFlipIndex(kPel,width);
 				let offset     = 4 * kPel;
 				let offsetFlip = 4 * kFlip;
 
@@ -40,53 +48,17 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			}
 
-			context.putImageData(flip,0,0) ;
+			context.putImageData(flip,0,0);
 
 		}
 
-		flip_index(kPel,width) {
+		getFlipIndex(kPel,width) {
 
 			let i     = Math.floor(kPel/width);
 			let j     = kPel % width;
 			let jFlip = width - j - 1;
 			let kFlip = i * width + jFlip;
 			return kFlip ;
-
-		}
-
-	}
-
-	class Effect {
-
-		constructor(canvas) {
-
-			this.film = new Mirror(canvas);
-			this.life = 10;
-
-		}
-
-		setUp(canvas,context) {
-
-			this.life = getRangeNumber(10,100);
-			this.film = new Mirror(canvas,context);
-
-		}
-
-		isDie() {
-
-			return this.life <= 0;
-
-		}
-
-		update() {
-
-			this.life--;
-
-		}
-
-		draw(context) {
-
-			this.film.draw(context);
 
 		}
 
@@ -120,12 +92,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function setup() {
 
-		let width  = _canvas.width;
-		let height = _canvas.height;
-		let x      = (width - _image.width) * .5;
-		let y      = (height - _image.height) * .5;
-
-		_effect = new Effect(_canvas);
+		_effect = new Effect();
 
 	}
 
@@ -143,7 +110,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_context.drawImage(_image,x,y);
 
-		_effect.draw(_context);
+		let flipWidth  = Math.round(width * .5);
+		let flipHeight = height;
+		let flipX      = flipWidth;
+		let flipY      = 0;
+		_effect.draw(_context,flipX,flipY,flipWidth,flipHeight);
 
 		window.requestAnimationFrame(render);
 
