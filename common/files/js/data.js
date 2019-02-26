@@ -106,6 +106,11 @@ const DATA = {
             "directory":"rotate-shape"
         },
         {
+            "name":"Free Triangle",
+            "category":"Shape",
+            "directory":"free-triangle"
+        },
+        {
             "name":"Culture Microorganism",
             "category":"Circle",
             "directory":"culture-microorganism"
