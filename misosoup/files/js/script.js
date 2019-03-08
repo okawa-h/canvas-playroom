@@ -202,12 +202,13 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	class Object {
 
-		constructor(id,x,y,scale) {
+		constructor(id,x,y,scale,dpr) {
 
 			this.id    = id;
 			this.x     = x;
 			this.y     = y;
 			this.scale = scale;
+			this.dpr   = dpr;
 
 			this.grab   = {};
 			this.grab.x = 0;
@@ -237,7 +238,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		onMove(point) {
 
-			const calcPoint = new Point(point.x * _dpr,point.y * _dpr);
+			const calcPoint = new Point(point.x * this.dpr,point.y * this.dpr);
 
 			if (this.guide.hasClass('grab')) {
 
@@ -277,7 +278,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 				const radian = Math.acos(babc / (Math.sqrt(ban * bcn)));
 
 				let angle  = radian * (180 / Math.PI);
-				angle = center.x < calcPoint.x ? angle : 180 - angle + 180;
+				if (calcPoint.x < center.x) angle *= -1;
 
 				this.angle = Math.round(angle);
 
@@ -311,8 +312,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		setGrabPosition(point) {
 
-			this.grab.x = this.x - point.x * _dpr;
-			this.grab.y = this.y - point.y * _dpr;
+			this.grab.x = this.x - point.x * this.dpr;
+			this.grab.y = this.y - point.y * this.dpr;
 
 		}
 
@@ -324,7 +325,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		update() {
 
-			this.guide.set(this.x/_dpr,this.y/_dpr,this.width/_dpr,this.height/_dpr,this.scale,this.angle);
+			this.guide.set(this.x/this.dpr,this.y/this.dpr,this.width/this.dpr,this.height/this.dpr,this.scale,this.angle);
 			return this;
 
 		}
@@ -367,13 +368,13 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	class ObjectImage extends Object {
 
-		constructor(id,image,width,height) {
+		constructor(id,image,width,height,dpr) {
 
 			let ratioW = width <= image.width ? width/image.width : 1;
 			let ratioH = height <= image.height ? height/image.height : 1;
 			let ratio  = ratioW < ratioH ? ratioW : ratioH;
 
-			super(id,0,0,ratio);
+			super(id,0,0,ratio,dpr);
 			this.image = image;
 
 			this.width  = image.width;
@@ -403,9 +404,9 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	class ObjectText extends Object {
 
-		constructor(id,context,x,y,text,color,fontsize) {
+		constructor(id,context,x,y,text,color,fontsize,dpr) {
 
-			super(id,x,y,1);
+			super(id,x,y,1,dpr);
 
 			let font = fontsize + 'px sans-serif';
 			context.font = font;
@@ -476,7 +477,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 			this.addHistory();
 
 			this.idConter++;
-			this.list.push(new ObjectImage(this.idConter,image,width,height));
+			this.list.push(new ObjectImage(this.idConter,image,width,height,_dpr));
 
 		}
 
@@ -485,7 +486,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 			this.addHistory();
 
 			this.idConter++;
-			this.list.push(new ObjectText(this.idConter,context,0,0,text,color,fontsize));
+			this.list.push(new ObjectText(this.idConter,context,0,0,text,color,fontsize,_dpr));
 
 		}
 
@@ -754,6 +755,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 	function uploadStamp() {
 
 		uploadImage((image) => _objectManager.addImage(image,_canvas.width,_canvas.height));
+		render();
 
 	}
 
@@ -761,6 +763,7 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 		const text = _setting.get('text');
 		_objectManager.addText(_context,text,'#000',_canvas.width * .08);
+		render();
 
 	}
 
@@ -769,10 +772,10 @@ import { Setting } from '../../../common/files/js/setting.js';
 		const width  = window.innerWidth;
 		const height = window.innerHeight;
 
-		canvas.style.width  = width  + 'px';
+		canvas.style.width = width  + 'px';
 		canvas.style.height = height + 'px';
 
-		_canvas.width  = width  * _dpr;
+		_canvas.width  = width * _dpr;
 		_canvas.height = height * _dpr;
 
 	}
@@ -836,13 +839,13 @@ import { Setting } from '../../../common/files/js/setting.js';
 
 	function render(timestamp) {
 
-		let width  = _canvas.width;
-		let height = _canvas.height;
+		const width  = _canvas.width;
+		const height = _canvas.height;
 
 		_context.clearRect(0,0,width,height);
 
-		let ratio  = width / _backImage.width;
-		let imageH = _backImage.height * ratio;
+		const ratio  = width / _backImage.width;
+		const imageH = _backImage.height * ratio;
 		_context.drawImage(_backImage,0,height - imageH,width,imageH);
 
 		_objectManager.render(_context);
