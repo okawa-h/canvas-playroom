@@ -60,8 +60,8 @@ import { Setting } from '../../../common/files/js/setting.js';
 			this.element = element;
 			this.object  = object;
 
-			this.setCornerUI(this);
-			this.setRotateUI(this);
+			this.setCornerUI();
+			this.setRotateUI();
 			this.setDeleteUI();
 			this.element.addEventListener(DOWN_EVENT,(event) => this.onDown(event),true);
 

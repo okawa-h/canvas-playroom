@@ -32,8 +32,8 @@
 
 .object-guide-corner {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     transition: background .1s ease-in-out;
 }
@@ -43,26 +43,26 @@
 }
 
 .object-guide-corner.left-top {
-    top: -7px;
-    left: -7px;
+    top: -17px;
+    left: -17px;
     cursor: grab;
 }
 
 .object-guide-corner.right-top {
-    top: -7px;
-    right: -7px;
+    top: -17px;
+    right: -17px;
     cursor: grab;
 }
 
 .object-guide-corner.right-bottom {
-    bottom: -7px;
-    right: -7px;
+    bottom: -17px;
+    right: -17px;
     cursor: grab;
 }
 
 .object-guide-corner.left-bottom {
-    bottom: -7px;
-    left: -7px;
+    bottom: -17px;
+    left: -17px;
     cursor: grab;
 }
 
@@ -77,13 +77,36 @@
 }
 
 .object-guide-ui.delete {
-    top: -40px;
-    right: 0;
+    left: 50%;
+    bottom: -40px;
     width: 20px;
     height: 20px;
+    margin-left: -10px;
     border-radius: 50%;
     background-color: #7ca8b9;
     cursor: pointer;
+}
+
+.object-guide-ui.delete:before,
+.object-guide-ui.delete:after {
+    display: block;
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 2px;
+    height: 10px;
+    margin-left: -1px;
+    background: #fff;
+    visibility: visible;
+}
+
+.object-guide-ui.delete:before{
+    transform: rotate(45deg);
+}
+
+.object-guide-ui.delete:after{
+    transform: rotate(-45deg);
 }
 
 .object-guide-ui.delete:hover{
@@ -94,7 +117,7 @@
     top: -50px;
     left: 50%;
     width: 60px;
-    height: 10px;
+    height: 15px;
     margin-left: -30px;
     border-radius: 6px;
     background-color: #7ca8b9;
