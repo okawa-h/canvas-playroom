@@ -1,12 +1,15 @@
 import { Setting } from '../../../common/files/js/setting.js';
-import { Filter } from '../../../common/files/js/filter.js';
 
 (function(window) {
 
 	'use strict';
 
+	const DOWN_EVENT = 'ontouchstart' in window ? 'touchstart' : 'mousedown';
+	const MOVE_EVENT = 'ontouchmove' in window ? 'touchmove' : 'mousemove';
+	const UP_EVENT   = 'ontouchend' in window ? 'touchend' : 'mouseup';
+
 	let _canvas,_context;
-	let _setting,_objectManager,_backImage,_inputImageDom,_effect;
+	let _setting,_objectManager,_backImage,_inputImageDom,_dpr;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
@@ -48,7 +51,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			this.corner = [];
 
-			let parentClass = this;
 			let element = document.createElement('div');
 			element.className = 'object-guide';
 
@@ -61,44 +63,41 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.setCornerUI(this);
 			this.setRotateUI(this);
 			this.setDeleteUI();
-			this.element.addEventListener('mousedown',function(event) {
-				parentClass.onDown(event,parentClass);
-			},true);
+			this.element.addEventListener(DOWN_EVENT,(event) => this.onDown(event),true);
 
 		}
 
-		onDown(event,parent) {
+		onDown(event) {
 
-			const point = new Point(event.clientX,event.clientY);
+			const position = getParsePosition(event);
+			const point    = new Point(position.x,position.y);
 
-			parent.addClass('active');
-			parent.addClass('grab');
-			parent.removeClass('grabCorner');
-			parent.removeClass('grabRotate');
+			this.addClass('active');
+			this.addClass('grab');
+			this.removeClass('grabCorner');
+			this.removeClass('grabRotate');
 
-			parent.object.setGrabPosition(point);
+			this.object.setGrabPosition(point);
 
 		}
 
-		onDownCorner(event,parent) {
+		onDownCorner(event) {
 
-			parent.addClass('active');
-			parent.removeClass('grab');
-			parent.addClass('grabCorner');
-			parent.removeClass('grabRotate');
+			this.addClass('active');
+			this.removeClass('grab');
+			this.addClass('grabCorner');
+			this.removeClass('grabRotate');
 
 			event.target.classList.add('active');
 
 		}
 
-		onDownRotate(event,parent) {
+		onDownRotate(event) {
 
-			const point = new Point(event.clientX,event.clientY);
-
-			parent.addClass('active');
-			parent.removeClass('grab');
-			parent.removeClass('grabCorner');
-			parent.addClass('grabRotate');
+			this.addClass('active');
+			this.removeClass('grab');
+			this.removeClass('grabCorner');
+			this.addClass('grabRotate');
 
 		}
 
@@ -114,7 +113,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		setCornerUI(parentClass) {
+		setCornerUI() {
 
 			const positionList = ['left-top','right-top','right-bottom','left-bottom'];
 			for (let i = 0; i < positionList.length; i++) {
@@ -126,22 +125,18 @@ import { Filter } from '../../../common/files/js/filter.js';
 				this.corner.push(cornerElm);
 
 				this.element.appendChild(cornerElm);
-				cornerElm.addEventListener('mousedown',function(event) {
-					parentClass.onDownCorner(event,parentClass);
-				},true);
+				cornerElm.addEventListener(DOWN_EVENT,(event) => this.onDownCorner(event),true);
 
 			}
 
 		}
 
-		setRotateUI(parentClass) {
+		setRotateUI() {
 
 			let element = document.createElement('div');
 			element.className = 'object-guide-ui rotate';
 			this.element.appendChild(element);
-			element.addEventListener('mousedown',function(event) {
-				parentClass.onDownRotate(event,parentClass);
-			},true);
+			element.addEventListener(DOWN_EVENT,(event) => this.onDownRotate(event),true);
 
 		}
 
@@ -151,9 +146,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 			let element = document.createElement('div');
 			element.className = 'object-guide-ui delete';
 			this.element.appendChild(element);
-			element.addEventListener('mousedown',function(event) {
-				_objectManager.delete(object.id);
-			},true);
+			element.addEventListener(DOWN_EVENT,(event) => _objectManager.delete(object.id),true);
 
 		}
 
@@ -244,24 +237,26 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		onMove(point) {
 
+			const calcPoint = new Point(point.x * _dpr,point.y * _dpr);
+
 			if (this.guide.hasClass('grab')) {
 
-				this.x = point.x + this.grab.x;
-				this.y = point.y + this.grab.y;
+				this.x = calcPoint.x + this.grab.x;
+				this.y = calcPoint.y + this.grab.y;
 
 			}
 
 			if (this.guide.hasClass('grabCorner')) {
 
-				let originalCenter = new Point(this.width * .5,this.height * .5);
-				let center = this.getCenterPoint();
-				let index  = this.guide.getActiveCornerIndex();
+				const originalCenter = new Point(this.width * .5,this.height * .5);
+				const center = this.getCenterPoint();
+				const index  = this.guide.getActiveCornerIndex();
 
 				const originalDiagonal = originalCenter.getDistance(this.originalCornerPoints[index]);
-				const diagonal         = center.getDistance(point);
+				const newDiagonal      = center.getDistance(calcPoint);
 				const beforeScale      = this.scale;
 
-				this.setScale(diagonal/originalDiagonal);
+				this.setScale(newDiagonal/originalDiagonal);
 
 				this.x += (this.width * beforeScale - this.width * this.scale) * .5;
 				this.y += (this.height * beforeScale - this.height * this.scale) * .5;
@@ -270,18 +265,19 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			if (this.guide.hasClass('grabRotate')) {
 
-				let center = this.getCenterPoint();
+				const center = this.getCenterPoint();
 
-				let acX = point.x - center.x;
-				let acY = point.y - center.y;
-				let bc  = (center.y - 100) - center.y;
+				const acX = calcPoint.x - center.x;
+				const acY = calcPoint.y - center.y;
+				const bc  = (center.y - 100) - center.y;
 
-				let babc   = acY * bc;
-				let ban    = (acX * acX) + (acY * acY);
-				let bcn    = bc * bc;
-				let radian = Math.acos(babc / (Math.sqrt(ban * bcn)));
+				const babc   = acY * bc;
+				const ban    = (acX * acX) + (acY * acY);
+				const bcn    = bc * bc;
+				const radian = Math.acos(babc / (Math.sqrt(ban * bcn)));
+
 				let angle  = radian * (180 / Math.PI);
-				angle = center.x < point.x ? angle : 180 - angle + 180;
+				angle = center.x < calcPoint.x ? angle : 180 - angle + 180;
 
 				this.angle = Math.round(angle);
 
@@ -315,8 +311,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		setGrabPosition(point) {
 
-			this.grab.x = this.x - point.x;
-			this.grab.y = this.y - point.y;
+			this.grab.x = this.x - point.x * _dpr;
+			this.grab.y = this.y - point.y * _dpr;
 
 		}
 
@@ -328,7 +324,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		update() {
 
-			this.guide.set(this.x,this.y,this.width,this.height,this.scale,this.angle);
+			this.guide.set(this.x/_dpr,this.y/_dpr,this.width/_dpr,this.height/_dpr,this.scale,this.angle);
 			return this;
 
 		}
@@ -401,11 +397,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			context.restore();
 
-
-			if (!this.guide.hasClass('active')) return;
-			let strong = getRangeNumber(1,5);
-			_effect.glitch(context,this.x,this.y,width,height,1,strong);
-
 		}
 
 	}
@@ -449,11 +440,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 			context.fillText(this.text,this.x,this.y);
 
 			context.restore();
-
-
-			if (!this.guide.hasClass('active')) return;
-			let strong = getRangeNumber(1,5);
-			_effect.glitch(context,this.x,this.y,width,height,1,strong);
 
 		}
 
@@ -622,101 +608,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	class Effect {
-
-		constructor() {
-
-			this.draw   = null;
-			this.filter = new Filter();
-
-			this.setProcessing();
-			this.setLife();
-
-		}
-
-		setLife() {
-
-			this.life  = getRangeNumber(0,100);
-			this.dying = getRangeNumber(1,10);
-
-		}
-
-		setProcessing() {
-
-			const processing = [this.filter.inversion,this.filter.glitch,this.filter.extendColor];
-			this.draw = processing[Math.floor(Math.random() * processing.length)];
-
-		}
-
-		counter(context,width,height) {
-
-			// this.jagged(context,width,height,getRangeNumber(0,5),getRangeNumber(1,5));
-			// this.glitchScreen(context,width,height,5);
-
-			this.life--;
-
-			this.filter.glitchSlip(context,width,height,20);
-
-			if (this.life <= 0) {
-
-				this.draw(context,width,height);
-
-			}
-
-			if (this.life <= -this.dying) {
-
-				this.setProcessing();
-				this.setLife();
-
-			}
-
-		}
-
-		jagged(context,width,height,strongX,strongY) {
-
-			let x = -strongX;
-
-			for (let y = 0; y < height; y += strongY) {
-
-				let image = context.getImageData(0,y,width,strongY);
-				context.putImageData(image,x,y);
-
-				x++;
-				if (strongX < x) x = -strongX;
-
-			}
-
-		}
-
-		glitchScreen(context,width,height,strong) {
-
-			let glitchHeight = 1;
-
-			for (let y = 0; y < height; y += glitchHeight) {
-
-				let image = context.getImageData(0,y,width,glitchHeight);
-				context.putImageData(image,getRangeNumber(-strong,strong),y);
-
-			}
-
-		}
-
-		glitch(context,startX,startY,width,height,lineHeight,glitchStrong) {
-
-			const maxHeight = startY + height;
-
-			for (let y = startY; y < maxHeight; y += lineHeight) {
-
-				let image  = context.getImageData(startX,y,width,lineHeight);
-				let strong = Math.round(Math.random() * (glitchStrong - -glitchStrong) - glitchStrong);
-				context.putImageData(image,startX + strong,y);
-
-			}
-
-		}
-
-	}
-
 	function initialize() {
 
 		_setting = new Setting({
@@ -730,19 +621,19 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_canvas  = document.getElementById('canvas');
 		_context = _canvas.getContext('2d');
+		_dpr     = window.devicePixelRatio;
+		_context.scale(_dpr,_dpr);
 
 		_setting.setCallback(setup);
 		setInputImage();
-
-		_effect = new Effect();
 		_objectManager = new ObjectManager();
 
 		function onLoadedAll() {
 
 			window.addEventListener('resize',onResize,false);
-			window.addEventListener('mousedown',onDown,true);
-			window.addEventListener('mousemove',onMove,false);
-			window.addEventListener('mouseup',onUp,false);
+			window.addEventListener(DOWN_EVENT,onDown,true);
+			window.addEventListener(MOVE_EVENT,onMove,false);
+			window.addEventListener(UP_EVENT,onUp,false);
 			window.addEventListener('keydown',onKeyDown,false);
 
 			window.dispatchEvent(new Event('resize'));
@@ -753,7 +644,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		imageLoader(function(backImage) {
+		imageLoader((backImage) => {
 
 			_backImage = backImage;
 
@@ -764,7 +655,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 				const src = './files/img/' + imageList[i];
 
-				imageLoader(function(image) {
+				imageLoader((image) => {
 
 					_objectManager.addImage(image,_canvas.width,_canvas.height);
 
@@ -787,10 +678,10 @@ import { Filter } from '../../../common/files/js/filter.js';
 		_inputImageDom.style.cssText = 'display: none; z-index: -1;';
 		document.getElementById('all').append(_inputImageDom);
 
-		function onFileLoad() {
+		const onFileLoad = () => {
 
 			let image = new Image();
-			image.onload = function() {
+			image.onload = () => {
 
 				_inputImageDom.callback(image);
 				_inputImageDom.callback = null;
@@ -800,7 +691,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		_inputImageDom.addEventListener('change',function(event) {
+		_inputImageDom.addEventListener('change',(event) => {
 
 			let file = event.target.files[0];
 
@@ -812,15 +703,15 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 			} else {
 
-				loadImage.parseMetaData(file,function(data) {
+				loadImage.parseMetaData(file,(data) => {
 
 					let options = { canvas:true };
 					if (data.exif) options.orientation = data.exif.get('Orientation');
 
-					loadImage(file,function(canvas) {
+					loadImage(file,(canvas) => {
 
 						let image = new Image();
-						image.onload = function() {
+						image.onload = () => {
 
 							_inputImageDom.callback(image);
 							_inputImageDom.callback = null;
@@ -856,41 +747,40 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function uploadBack() {
 
-		uploadImage(function(image) {
-
-			_backImage = image;
-
-		});
+		uploadImage((image) => _backImage = image);
 
 	}
 
 	function uploadStamp() {
 
-		uploadImage(function(image) {
-
-			_objectManager.addImage(image,_canvas.width,_canvas.height)
-
-		});
+		uploadImage((image) => _objectManager.addImage(image,_canvas.width,_canvas.height));
 
 	}
 
 	function addText() {
 
-		let text = _setting.get('text');
+		const text = _setting.get('text');
 		_objectManager.addText(_context,text,'#000',_canvas.width * .08);
 
 	}
 
 	function onResize() {
 
-		_canvas.width  = window.innerWidth;
-		_canvas.height = window.innerHeight;
+		const width  = window.innerWidth;
+		const height = window.innerHeight;
+
+		canvas.style.width  = width  + 'px';
+		canvas.style.height = height + 'px';
+
+		_canvas.width  = width  * _dpr;
+		_canvas.height = height * _dpr;
 
 	}
 
 	function onDown(event) {
 
-		const point = new Point(event.clientX,event.clientY);
+		const position = getParsePosition(event);
+		const point    = new Point(position.x,position.y);
 
 		_objectManager.onDown(point);
 
@@ -898,8 +788,10 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	function onMove(event) {
 
-		const point = new Point(event.clientX,event.clientY);
+		const position = getParsePosition(event);
+		const point    = new Point(position.x,position.y);
 		_objectManager.onMove(point);
+		window.requestAnimationFrame(render);
 
 	}
 
@@ -955,10 +847,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_objectManager.render(_context);
 
-		// _effect.counter(_context,width,height);
-
-		window.requestAnimationFrame(render);
-
 	}
 
 	function getRangeNumber(min, max) {
@@ -970,12 +858,22 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function imageLoader(onLoad,src) {
 
 		let image = new Image();
-		image.onload = function(event) {
+		image.onload = (event) => onLoad(image);
+		image.src = src;
 
-			onLoad(image);
+	}
+
+	function getParsePosition(event) {
+
+		let clientX = event.clientX;
+		let clientY = event.clientY;
+		if (event.type === 'touchstart' || event.type === 'touchmove' || event.type === 'touchup') {
+
+			clientX = event.touches[0].clientX;
+			clientY = event.touches[0].clientY;
 
 		}
-		image.src = src;
+		return { x:clientX,y:clientY };
 
 	}
 
