@@ -66,6 +66,11 @@ const DATA = {
             "directory":"circle"
         },
         {
+            "name":"Fluid",
+            "category":"Circle",
+            "directory":"fluid"
+        },
+        {
             "name":"Neon Text",
             "category":"Text",
             "directory":"neon-text"
