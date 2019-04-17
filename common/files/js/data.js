@@ -16,14 +16,14 @@ const DATA = {
             "directory":"bloom-image"
         },
         {
-        	"name":"Gray",
+            "name":"Gray",
             "category":"Image Effect",
-        	"directory":"gray-image"
+            "directory":"gray-image"
         },
         {
-        	"name":"Puzzle",
+            "name":"Puzzle",
             "category":"Image Effect",
-        	"directory":"puzzle-image"
+            "directory":"puzzle-image"
         },
         {
             "name":"Mirror",
@@ -89,6 +89,11 @@ const DATA = {
             "name":"Grow Text",
             "category":"Text",
             "directory":"grow-digital-text"
+        },
+        {
+            "name":"Voice Convert Text",
+            "category":"Text",
+            "directory":"voice-convert-text"
         },
         {
             "name":"Dynamic Text",
