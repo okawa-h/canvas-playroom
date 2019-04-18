@@ -55,6 +55,49 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
+	class DieObject {
+
+		constructor(x,y,number,color) {
+
+			const direction = (number % 3) - 1;
+			const delay     = Math.ceil(number / 3) - 1;
+
+			this.x      = x;
+			this.y      = y;
+			this.width  = 3;
+			this.height = 3;
+			this.delay  = delay * 20;
+			this.color  = color;
+			this.velocity = { x:direction * .5 + getRangeNumber(-1,1),y:getRangeNumber(0.5,1) };
+
+		}
+
+		update() {
+
+			this.delay--;
+
+			if (this.delay <= 0) {
+
+				this.x += this.velocity.x;
+				this.y -= this.velocity.y;
+
+			}
+
+		}
+
+		draw(context) {
+
+			if (this.delay <= 0) {
+
+				context.fillStyle = this.color;
+				context.fillRect(this.x - this.width * .5,this.y - this.height * .5,this.width,this.height);
+
+			}
+
+		}
+
+	}
+
 	class Text {
 
 		constructor(x,y,text,color,width,height) {
@@ -85,6 +128,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		isHeaven() {
+
+			return this.life <= -100;
+
+		}
+
 		setRandomVelocity() {
 
 			this.velocity = { x:getRangeNumber(1,3),y:getRangeNumber(1,3) };
@@ -94,6 +143,11 @@ import { Filter } from '../../../common/files/js/filter.js';
 		update(minX,minY,maxX,maxY) {
 
 			this.life--;
+
+			if (!this.isAlive()) {
+				this.updateDie();
+				return;
+			}
 
 			maxX -= this.width;
 			maxY -= this.height;
@@ -125,10 +179,48 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		updateDie() {
+
+			if (!this.dieObjects) this.initializeDieObjects();
+
+			for (let i = 0; i < this.dieObjects.length; i++) {
+
+				const object = this.dieObjects[i];
+				object.update();
+
+			}
+
+		}
+
+		initializeDieObjects() {
+
+			this.dieObjects = [];
+			for (let i = 0; i < 10; i++) {
+
+				let object = new DieObject(this.x + this.width * .5,this.y + this.height * .5,i,this.color);
+				this.dieObjects.push(object);
+
+			}
+
+		}
+
 		draw(context) {
 
-			context.fillStyle = this.color;
-			context.fillText(this.text,this.x,this.y);
+			if (this.isAlive()) {
+
+				context.fillStyle = this.color;
+				context.fillText(this.text,this.x,this.y);
+
+			} else {
+
+				for (let i = 0; i < this.dieObjects.length; i++) {
+
+					const object = this.dieObjects[i];
+					object.draw(context);
+
+				}
+
+			}
 
 		}
 
@@ -189,7 +281,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 				let object = this.objectList[i];
 				object.update(0,0,width,height);
 
-				if (!object.isAlive()) {
+				if (object.isHeaven()) {
 
 					this.objectList.splice(i,1);
 					if (this.objectList.length <= 0) break;
@@ -335,6 +427,5 @@ import { Filter } from '../../../common/files/js/filter.js';
 		return Math.random() * (max - min) + min;
 
 	}
-
 
 })(window);
