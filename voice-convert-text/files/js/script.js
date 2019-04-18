@@ -6,7 +6,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 	'use strict';
 
 	let _dpr,_canvas,_context;
-	let _setting,_effect,_textManager,_recorder,_resultArray;
+	let _setting,_effect,_textManager,_recorder;
 
 	document.addEventListener('DOMContentLoaded',initialize);
 
@@ -63,6 +63,7 @@ import { Filter } from '../../../common/files/js/filter.js';
 			this.y     = y;
 			this.text  = text;
 			this.color = color;
+			this.life  = 800;
 
 			this.direction = {
 				x:[-1,1][Math.floor(Math.random()*2)],
@@ -78,6 +79,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
+		isAlive() {
+
+			return 0 < this.life;
+
+		}
+
 		setRandomVelocity() {
 
 			this.velocity = { x:getRangeNumber(1,3),y:getRangeNumber(1,3) };
@@ -85,6 +92,8 @@ import { Filter } from '../../../common/files/js/filter.js';
 		}
 
 		update(minX,minY,maxX,maxY) {
+
+			this.life--;
 
 			maxX -= this.width;
 			maxY -= this.height;
@@ -129,7 +138,6 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		constructor() {
 
-			this.isSaturation = false;
 			this.objectList = [];
 			this.colorList  = ['#ff0000','#ff007f','#ff00ff','#7f00ff','#0000ff','#007fff','#00ffff','#00ff7f','#00ff00','#7fff00','#ffff00','#ff7f00'];
 
@@ -171,31 +179,24 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		}
 
-		update(context,text,fontsize,width,height) {
+		update(width,height) {
 
-			if (!this.isSaturation && 300 <= this.objectList.length) this.isSaturation = true;
+			let length = this.objectList.length;
+			if (length <= 0) return this;
 
-			// if (this.isSaturation) {
-
-			// 	if (this.objectList.length <= 1) this.isSaturation = false;
-			// 	this.objectList.pop();
-
-			// }
-
-			if (this.objectList.length <= 0) this.addText(context,text,fontsize,width * .5,height * .5);
-
-			const length = this.objectList.length;
 			for (let i = 0; i < length; i++) {
 
 				let object = this.objectList[i];
 				object.update(0,0,width,height);
 
-				// if (object.isCollision && .95 < Math.random() && !this.isSaturation) {
+				if (!object.isAlive()) {
 
-				// 	object.isCollision = false;
-				// 	this.addText(context,text,fontsize,object.x,object.y,object);
+					this.objectList.splice(i,1);
+					if (this.objectList.length <= 0) break;
+					i--;
+					length--;
 
-				// }
+				}
 
 			}
 
@@ -218,14 +219,12 @@ import { Filter } from '../../../common/files/js/filter.js';
 	function initialize() {
 
 		_setting = new Setting({
-			font_size:{ value:window.innerWidth * .015,'data-reload':false },
-			text     :{ value:'Please say something.','data-reload':false }
+			font_size:{ value:window.innerWidth * .015,'data-reload':false }
 		});
 
 		_dpr     = window.devicePixelRatio || 1;
 		_canvas  = document.getElementById('canvas');
 		_context = _canvas.getContext('2d');
-		_resultArray = [];
 
 		window.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
 		startRecorder();
@@ -234,11 +233,14 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 		_effect = new Effect();
 
-		window.addEventListener('resize',onResize,false);
+		setTimeout(function() {
 
-		setCanvasSize();
-		setup();
-		window.requestAnimationFrame(render);
+			window.addEventListener('resize',onResize,false);
+			setCanvasSize();
+			setup();
+			window.requestAnimationFrame(render);
+
+		},200);
 
 	}
 
@@ -254,29 +256,21 @@ import { Filter } from '../../../common/files/js/filter.js';
 		_recorder = new SpeechRecognition();
 		_recorder.interimResults = true;
 		_recorder.continuous     = true;
-		_recorder.onresult       =  function(event) {
-			onResult(event.results);
+		_recorder.onresult       = onResult;
+
+		_recorder.onsoundstart = function(event) {
+
 		};
 
-		console.log(_recorder);
-		_recorder.onsoundstart = function(event) {
-			console.log('onsoundstart');
-			console.log(event);
-		};
 		_recorder.onnomatch = function(event) {
-			console.log('onnomatch');
-			console.log(event);
 		};
+
 		_recorder.onerror = function(event) {
-			console.log('onerror');
-			console.log(event);
 			if (event.error === 'no-speech') startRecorder();
 		};
+
 		_recorder.onsoundend = function(event) {
-			console.log('onsoundend');
-			console.log(event);
 			startRecorder();
-			console.log(_recorder);
 		};
 
 		_recorder.lang = 'en-US';
@@ -291,35 +285,35 @@ import { Filter } from '../../../common/files/js/filter.js';
 
 	}
 
-	function onResult(results) {
-console.log(results);
+	function onResult(event) {
 
-		var target = results[results.length - 1];
-		var value  = target[0].transcript;
+		var results = event.results;
+		var target  = results[results.length - 1];
+		var value   = target[0].transcript;
 
-		if (target.isFinal) {
-			// value += '\n';
+		let fontsize = parseFloat(_setting.get('font_size'));
+		let width    = _canvas.width;
+		let height   = _canvas.height;
 
-			let fontsize = parseFloat(_setting.get('font_size'));
-			let width  = _canvas.width;
-			let height = _canvas.height;
-			_textManager.addText(_context,value,fontsize,width*.5,height*.5);
-			// console.log(_recorder);
-			// console.log(value);
-		}
+		if (!target.isFinal) value = '.';
+
+		_textManager.addText(_context,value,fontsize,width*.5,height*.5);
 
 	}
 
 	function setup() {
 
+		let fontsize = parseFloat(_setting.get('font_size'));
+		let width    = _canvas.width;
+		let height   = _canvas.height;
+
 		_textManager = new TextManager();
+		_textManager.addText(_context,'Please say something.',fontsize,width*.5,height*.5);
 
 	}
 
 	function render(timestamp) {
 
-		let text     = _setting.get('text');
-		let fontsize = parseFloat(_setting.get('font_size'));
 		let width  = _canvas.width;
 		let height = _canvas.height;
 
@@ -328,7 +322,7 @@ console.log(results);
 		_context.fillStyle = '#000';
 		_context.fillRect(0,0,width,height);
 
-		_textManager.update(_context,text,fontsize,width,height).draw(_context);
+		_textManager.update(width,height).draw(_context);
 
 		_effect.counter(_context,width,height);
 
