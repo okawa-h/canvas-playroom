@@ -46,6 +46,11 @@ const DATA = {
             "directory":"color-glitch"
         },
         {
+            "name":"Wave Glitch",
+            "category":"Image Effect",
+            "directory":"wave-glitch"
+        },
+        {
             "name":"Delaunay",
             "category":"Image Effect",
             "directory":"delaunay-image"
