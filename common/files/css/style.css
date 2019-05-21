@@ -47,7 +47,7 @@ canvas {
 }
 
     .category-section .name {
-        margin-bottom: 1em;
+        margin-bottom: .8em;
         font-size: 18px;
         font-weight: bold;
     }
@@ -112,10 +112,14 @@ canvas {
             }
 
             .list li figure figcaption {
-                padding: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 12px;
                 background-color: #fff;
                 font-size: 12px;
                 font-weight: bold;
+                line-height: 1.2;
             }
 
 @media screen and (max-width:640px) {
