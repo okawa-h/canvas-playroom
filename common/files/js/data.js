@@ -26,6 +26,11 @@ const DATA = {
             "directory":"puzzle-image"
         },
         {
+            "name":"Pixel",
+            "category":"Image Effect",
+            "directory":"pixel-effect"
+        },
+        {
             "name":"Mirror",
             "category":"Image Effect",
             "directory":"mirror-image"
@@ -114,6 +119,11 @@ const DATA = {
             "name":"Particle Text",
             "category":"Text",
             "directory":"text-particle"
+        },
+        {
+            "name":"Particle in Text",
+            "category":"Text",
+            "directory":"text-in-particle"
         },
         {
             "name":"Wave Pattern",
